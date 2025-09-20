@@ -3,4 +3,8 @@ services:
     name: roulette-app
     env: static
     buildCommand: ""
-    staticPublishPath: App
+    rootDir: App
+    staticPublishPath: .
+    plan: free
+
+
