@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: roulette-app
+    env: static
+    buildCommand: ""
+    staticPublishPath: App
