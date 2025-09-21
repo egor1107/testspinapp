@@ -81,11 +81,11 @@ html, body{
   position: relative;
 }
 
-/* Инлайн заголовок */
+/* Инлайн заголовок с увеличенным отступом сверху для TMA */
 .app-header-inline {
   position: relative;
-  padding: 20px 0;
-  margin-bottom: 10px;
+  padding: 20px 0 10px; /* Увеличен верхний отступ с 0px до 20px для TMA */
+  margin-bottom: 0px;
 }
 
 .header-content {
@@ -179,10 +179,10 @@ html, body{
   background: rgba(16, 185, 129, 0.2);
 }
 
-/* Main content */
+/* Main content с увеличенным верхним отступом для адаптации под TMA */
 .main-content {
   flex: 1;
-  padding: 40px 16px 20px; /* Уменьшен верхний отступ и нижний отступ */
+  padding: 60px 16px 20px; /* Увеличен верхний отступ с 40px до 60px для TMA */
   display: flex;
   align-items: flex-start; /* Изменено с center на flex-start для лучшего размещения */
   justify-content: center;
@@ -227,13 +227,13 @@ html, body{
   display: none;
 }
 
-/* Увеличенный контейнер колеса */
+/* Уменьшенный контейнер колеса для более компактного размещения */
 .wheel-container {
   position: relative;
   width: 100%;
-  max-width: 480px; /* Увеличен с 420px до 480px */
+  max-width: 420px; /* Уменьшен с 480px до 420px для более компактного размещения */
   aspect-ratio: 1;
-  margin: 0 auto 40px; /* Увеличен нижний отступ для размещения кнопок внизу */
+  margin: 0 auto 20px; /* Уменьшен нижний отступ с 40px до 20px для приближения к кнопкам */
   padding: 20px;
 }
 
@@ -336,9 +336,9 @@ canvas#wheel{
   pointer-events: none;
 }
 
-/* Controls section - перемещены вниз */
+/* Controls section - уменьшен отступ сверху */
 .controls{
-  margin-top: 60px; /* Увеличен отступ сверху чтобы подвинуть кнопки вниз */
+  margin-top: 20px; /* Уменьшен отступ с 60px до 20px чтобы подвинуть кнопки ближе к колесу */
 }
 
 .bet-grid{
@@ -458,7 +458,7 @@ canvas#wheel{
   position: relative;
   overflow: hidden;
   box-shadow: var(--shadow-soft);
-  margin-bottom: 60px; /* Добавлен отступ снизу чтобы кнопка была ближе к нижним вкладкам */
+  margin-bottom: 20px; /* Уменьшен отступ снизу с 60px до 20px чтобы кнопка была ближе к нижним вкладкам */
 }
 
 .spin-button::before {
@@ -921,32 +921,16 @@ canvas#wheel{
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 4px;
-  line-height: 1.2;
 }
 
 .reward-count {
   font-size: 10px;
   color: var(--text-secondary);
-  background: var(--glass);
+  background: rgba(168, 85, 247, 0.2);
   padding: 2px 6px;
   border-radius: 8px;
   display: inline-block;
 }
-
-.reward-rarity {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  box-shadow: 0 0 8px currentColor;
-}
-
-.rarity-common { color: #94a3b8; }
-.rarity-rare { color: #3b82f6; }
-.rarity-epic { color: #8b5cf6; }
-.rarity-legendary { color: #ef4444; }
 
 .empty-inventory {
   grid-column: 1 / -1;
@@ -958,117 +942,22 @@ canvas#wheel{
 .empty-icon {
   font-size: 48px;
   margin-bottom: 16px;
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 .empty-text {
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 8px;
+  color: var(--text-secondary);
 }
 
 .empty-subtitle {
   font-size: 14px;
-  opacity: 0.8;
-}
-
-/* Responsive design */
-@media(max-width: 480px){
-  .app-header-inline {
-    padding: 15px 0;
-    margin-bottom: 15px;
-  }
-  
-  .main-content {
-    padding: 30px 16px 20px;
-  }
-  
-  .center-hub {
-    width: 120px;
-    height: 120px;
-  }
-  
-  .center-hub .main-text { 
-    font-size: 16px; 
-  }
-  
-  .wheel-container {
-    max-width: 400px;
-  }
-  
-  .bet-option { 
-    padding: 8px 6px;
-    font-size: 10px; 
-  }
-  
-  .modal-content { 
-    padding: 24px 20px;
-    border-radius: 24px;
-  }
-  
-  .app-title {
-    font-size: 22px;
-  }
-  
-  .section-title {
-    font-size: 24px;
-  }
-  
-  .inventory-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 12px;
-  }
-  
-  .reward-card {
-    padding: 12px;
-  }
-  
-  .reward-image {
-    width: 50px;
-    height: 50px;
-    font-size: 20px;
-  }
-  
-  .stat-icon {
-    width: 50px;
-    height: 50px;
-    font-size: 24px;
-  }
-  
-  .stat-number {
-    font-size: 24px;
-  }
-  
-  .sound-slider {
-    width: 35px;
-    height: 18px;
-  }
-  
-  .sound-slider::before {
-    width: 16px;
-    height: 16px;
-  }
-  
-  .sound-slider.active::before {
-    transform: translateX(17px);
-  }
-  
-  .controls{
-    margin-top: 40px;
-  }
-  
-  .spin-button{
-    margin-bottom: 40px;
-  }
-}
-
-/* Loading state */
-.loading {
   opacity: 0.7;
-  pointer-events: none;
 }
 
-/* Confetti styles */
+/* Confetti animation */
 .confetti {
   position: fixed;
   top: 0;
@@ -1076,13 +965,36 @@ canvas#wheel{
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 100;
+  z-index: 1000;
 }
 
 .confetti-piece {
   position: absolute;
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 2px;
-  opacity: 0.9;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 400px) {
+  .main-content {
+    padding: 80px 12px 16px; /* Дополнительно увеличен верхний отступ для маленьких экранов */
+  }
+  
+  .app-header-inline {
+    padding: 30px 0 10px; /* Увеличен верхний отступ для маленьких экранов */
+  }
+  
+  .wheel-container {
+    max-width: 360px; /* Уменьшен размер колеса для маленьких экранов */
+    margin-bottom: 15px; /* Еще меньше отступ для маленьких экранов */
+  }
+  
+  .controls {
+    margin-top: 15px; /* Еще меньше отступ для маленьких экранов */
+  }
+  
+  .spin-button {
+    margin-bottom: 15px; /* Уменьшен отступ снизу для маленьких экранов */
+  }
 }
