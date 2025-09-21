@@ -176,7 +176,7 @@
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
     const radius = Math.min(centerX, centerY) - 8;
-    const centerHoleRadius = 60;
+    const centerHoleRadius = 65; // Увеличен радиус центра с 60 до 65
     
     // Create sectors from config
     const sectors = [];
