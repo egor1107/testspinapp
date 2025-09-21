@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lucky Wheel - Telegram Mini App</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -15,7 +15,9 @@
     <div class="app-header">
       <div class="header-content">
         <h1 class="app-title">Lucky Wheel</h1>
-        <div class="balance-container" onclick="showBalanceModal()" style="cursor:pointer;"><span class="balance-text">1,000 <img src="images/Star Fill.svg" alt="звезды" class="star-icon" class="star-icon"></span></div>
+        <div class="balance-container" style="cursor:pointer;" onclick="showBalanceModal()">
+          <span class="balance-text">1,000 <img src="images\Star Fill.svg" alt="" class="star-icon"></span>
+        </div>
       </div>
     </div>
 
@@ -37,7 +39,7 @@
             <div class="wheel-container" id="wheelContainer">
               <div class="progress-ring" id="progressRing"></div>
               <div class="pointer" id="pointer"></div>
-              <canvas id="wheel" width="380" height="380"></canvas>
+              <canvas id="wheel" width="420" height="420"></canvas>
               <div class="particles" id="particles"></div>
               <div class="center-hub" id="centerHub">
                 <div class="status-text">Удача</div>
@@ -103,7 +105,7 @@
 
               <!-- Inventory -->
               <div class="inventory-section">
-                <h3 class="inventory-title">🏆 Инвентарь наград</h3>
+                <h3 class="inventory-title">Инвентарь наград</h3>
                 <div class="inventory-grid" id="inventoryGrid">
                   <div class="empty-inventory">
                     <div class="empty-icon">📦</div>
@@ -126,10 +128,10 @@
           <div class="nav-icon"><img src="images/Market Fill.svg" alt="магазин" width="28" height="28"></div>
         </div>
         <div class="nav-item active" onclick="showSection('wheel')">
-          <div class="nav-icon"><img src="images/Gift Fill.svg" alt="колесо" width="28" height="28"></div>
+          <div class="nav-icon"><img src="images\Gift Fill.svg" alt="колесо" width="28" height="28"></div>
         </div>
         <div class="nav-item" onclick="showSection('profile')">
-          <div class="nav-icon"><img src="images/User Circle Outline.svg" alt="профиль" width="28" height="28"></div>
+          <div class="nav-icon"><img src="images\User Circle Outline.svg" alt="профиль" width="28" height="28"></div>
         </div>
       </div>
     </div>
@@ -138,9 +140,9 @@
   <!-- Result Modal -->
   <div class="modal" id="modal">
     <div class="modal-content">
-      <div class="modal-title" id="modalTitle">Результат</div>
-      <div class="modal-result" id="modalResult"></div>
-      <div class="modal-message" id="modalMessage"></div>
+      <div class="modal-title" id="modalTitle">Результат спина</div>
+      <div class="modal-result" id="modalResult">🎊</div>
+      <div class="modal-message" id="modalMessage">Поздравляем с выигрышем!</div>
       <button class="modal-button" id="modalButton">Продолжить</button>
     </div>
   </div>
@@ -156,4 +158,5 @@
 
   <script src="script.js"></script>
 </body>
-</html>
+</html></absolute_file_name>
+    </file>
