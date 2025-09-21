@@ -1,10 +1,7 @@
 services:
   - type: web
     name: roulette-app
-    env: static
-    buildCommand: ""
-    rootDir: App
-    staticPublishPath: .
+    env: node
+    buildCommand: "yarn install"
+    startCommand: "yarn start"
     plan: free
-
-
