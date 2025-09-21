@@ -84,7 +84,7 @@ html, body{
 /* Инлайн заголовок */
 .app-header-inline {
   position: relative;
-  padding: 0px 0;
+  padding: 20px 0;
   margin-bottom: 10px;
 }
 
@@ -233,6 +233,8 @@ html, body{
   width: 100%;
   max-width: 480px; /* Увеличен с 420px до 480px */
   aspect-ratio: 1;
+  margin: 0 auto 40px; /* Увеличен нижний отступ для размещения кнопок внизу */
+  padding: 20px;
 }
 
 canvas#wheel{
