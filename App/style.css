@@ -182,7 +182,7 @@ html, body{
 /* Main content с увеличенным верхним отступом для адаптации под TMA */
 .main-content {
   flex: 1;
-  padding: 60px 16px 120px; /* Увеличен нижний отступ с 20px до 120px для избежания перекрытия с нижней панелью */
+  padding: 60px 16px 20px; /* Вернули обычный нижний отступ */
   display: flex;
   align-items: flex-start; /* Изменено с center на flex-start для лучшего размещения */
   justify-content: center;
@@ -192,7 +192,6 @@ html, body{
   width: 100%;
   max-width: 400px;
   position: relative;
-  padding-bottom: 120px; /* Дополнительный отступ снизу для избежания перекрытия с нижней панелью */
 }
 
 /* Section panels */
@@ -459,7 +458,7 @@ canvas#wheel{
   position: relative;
   overflow: hidden;
   box-shadow: var(--shadow-soft);
-  margin-bottom: 16px; /* Уменьшен отступ снизу для истории */
+  margin-bottom: 12px; /* Уменьшен отступ для приближения к истории */
 }
 
 .spin-button::before {
@@ -503,26 +502,20 @@ canvas#wheel{
   backdrop-filter: blur(15px);
   border: 1px solid var(--glass-border);
   border-radius: 16px;
-  padding: 12px;
-  margin-bottom: 100px; /* Увеличен отступ до нижней панели */
+  padding: 8px 12px; /* Уменьшен вертикальный padding */
+  margin-bottom: 20px; /* Обычный отступ до нижней панели */
   max-width: 100%;
 }
 
 .spin-history-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  margin-bottom: 8px;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  display: none; /* Скрываем заголовок */
 }
 
 .spin-history {
   display: flex;
-  gap: 6px;
+  gap: 8px; /* Увеличен gap между кубиками */
   overflow-x: auto;
-  padding: 4px 0;
+  padding: 6px 0; /* Увеличен вертикальный padding */
   scroll-behavior: smooth;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
@@ -544,9 +537,9 @@ canvas#wheel{
 }
 
 .history-cube {
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
+  width: 32px; /* Увеличен с 24px до 32px */
+  height: 32px; /* Увеличен с 24px до 32px */
+  border-radius: 8px; /* Увеличен с 6px до 8px */
   flex-shrink: 0;
   position: relative;
   border: 1px solid rgba(255, 255, 255, 0.2);
