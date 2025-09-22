@@ -1,9 +1,9 @@
 // Configuration
-const WHEEL_CONFIG = [ 
-  {label: "Звёзды", count: 30, color: '#06b6d4'}, 
-  {label: "Подарок", count: 12, color: '#f59e0b'}, 
-  {label: "NFT", count: 5, color: '#8b5cf6'}, 
-  {label: "Secret NFT", count: 1, color: '#ef4444'} 
+const WHEEL_CONFIG = [
+  {label: "Звёзды", count: 30, color: '#06b6d4'},
+  {label: "Подарок", count: 12, color: '#f59e0b'},
+  {label: "NFT", count: 5, color: '#8b5cf6'},
+  {label: "Secret NFT", count: 1, color: '#ef4444'}
 ];
 
 // Game state
@@ -19,6 +19,9 @@ let gameState = {
   currentSection: 'wheel'
 };
 
+// История спинов (только в текущей сессии, не сохраняется в localStorage)
+let spinHistory = [];
+
 // Audio context for sound effects
 let audioContext = null;
 
@@ -33,19 +36,19 @@ function initAudio() {
 
 function playSound(frequency, duration, type = 'sine') {
   if (!audioContext || !gameState.soundEnabled) return;
-  
+
   const oscillator = audioContext.createOscillator();
   const gainNode = audioContext.createGain();
-  
+
   oscillator.connect(gainNode);
   gainNode.connect(audioContext.destination);
-  
+
   oscillator.frequency.value = frequency;
   oscillator.type = type;
-  
+
   gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
   gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-  
+
   oscillator.start(audioContext.currentTime);
   oscillator.stop(audioContext.currentTime + duration);
 }
@@ -54,7 +57,7 @@ function playSound(frequency, duration, type = 'sine') {
 function initBackgroundParticles() {
   const container = document.getElementById('bgParticles');
   const particleCount = 20;
-  
+
   for (let i = 0; i < particleCount; i++) {
     const particle = document.createElement('div');
     particle.className = 'bg-particle';
@@ -84,9 +87,9 @@ function addRewardToInventory(rewardName) {
 
 function updateInventoryDisplay() {
   const inventoryGrid = document.getElementById('inventoryGrid');
-  
+
   // Check if inventory is empty
-  if (Object.keys(gameState.inventory).length === 0 || 
+  if (Object.keys(gameState.inventory).length === 0 ||
       Object.values(gameState.inventory).every(count => count === 0)) {
     inventoryGrid.innerHTML = `
       <div class="empty-inventory">
@@ -113,7 +116,7 @@ function updateInventoryDisplay() {
       `;
     }
   });
-  
+
   inventoryGrid.innerHTML = inventoryHTML;
 }
 
@@ -121,18 +124,79 @@ function updateProfileStats() {
   document.getElementById('profileSpins').textContent = gameState.spins;
 }
 
+// Функция для добавления результата в историю спинов
+function addToSpinHistory(prize, isWin) {
+  spinHistory.push({ prize, isWin });
+  
+  // Ограничиваем историю до 20 последних спинов
+  if (spinHistory.length > 20) {
+    spinHistory.shift();
+  }
+  
+  updateSpinHistoryDisplay();
+}
+
+// Функция для обновления отображения истории спинов
+function updateSpinHistoryDisplay() {
+  const historyContainer = document.getElementById('spinHistory');
+  
+  if (spinHistory.length === 0) {
+    historyContainer.innerHTML = '<div class="history-placeholder">Начните крутить колесо!</div>';
+    return;
+  }
+  
+  let historyHTML = '';
+  spinHistory.forEach((spin, index) => {
+    let cubeClass = 'history-cube';
+    
+    if (spin.isWin) {
+      // Определяем класс по типу приза
+      switch (spin.prize) {
+        case 'Secret NFT':
+          cubeClass += ' win-secret-nft';
+          break;
+        case 'NFT':
+          cubeClass += ' win-nft';
+          break;
+        case 'Звёзды':
+          cubeClass += ' win-stars';
+          break;
+        case 'Подарок':
+          cubeClass += ' win-gift';
+          break;
+      }
+    } else {
+      cubeClass += ' lose';
+    }
+    
+    // Добавляем анимацию для последнего элемента
+    if (index === spinHistory.length - 1) {
+      cubeClass += ' new';
+    }
+    
+    historyHTML += `<div class="${cubeClass}" title="${spin.isWin ? 'Выигрыш: ' + spin.prize : 'Промах'}"></div>`;
+  });
+  
+  historyContainer.innerHTML = historyHTML;
+  
+  // Прокручиваем к последнему элементу
+  setTimeout(() => {
+    historyContainer.scrollLeft = historyContainer.scrollWidth;
+  }, 100);
+}
+
 // Section navigation
 function showSection(section) {
   // Hide all sections
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  
+
   // Show selected section
   document.getElementById(section + 'Section').classList.add('active');
   document.querySelector(`[onclick="showSection('${section}')"]`).classList.add('active');
-  
+
   gameState.currentSection = section;
-  
+
   // Update profile data when switching to profile
   if (section === 'profile') {
     updateProfileStats();
@@ -144,7 +208,7 @@ function showSection(section) {
 function toggleSound() {
   gameState.soundEnabled = !gameState.soundEnabled;
   localStorage.setItem('soundEnabled', gameState.soundEnabled);
-  
+
   const slider = document.getElementById('soundSlider');
   if (gameState.soundEnabled) {
     slider.classList.add('active');
@@ -161,12 +225,12 @@ function showBalanceModal() {
   const title = document.getElementById('modalTitle');
   const result = document.getElementById('modalResult');
   const message = document.getElementById('modalMessage');
-  
+
   title.textContent = 'Пополнение баланса';
   result.textContent = '💳';
   result.className = 'modal-result';
   message.textContent = 'Функция пополнения баланса будет доступна в ближайшее время!';
-  
+
   modal.classList.add('show');
 }
 
@@ -207,7 +271,7 @@ let isSpinning = false;
 
 function drawWheel(rotationAngle = 0) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
+
   // Draw outer shadow
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius + 4, 0, Math.PI * 2);
@@ -218,17 +282,17 @@ function drawWheel(rotationAngle = 0) {
   ctx.fill();
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
-  
+
   // Draw sectors
   for(let i = 0; i < sectors.length; i++) {
     const startAngle = rotationAngle + i * sectorAngle;
     const endAngle = startAngle + sectorAngle;
-    
+
     // Create gradient for each sector
     const gradient = ctx.createRadialGradient(centerX, centerY, centerHoleRadius, centerX, centerY, radius);
     gradient.addColorStop(0, sectors[i].color);
     gradient.addColorStop(1, sectors[i].color + 'CC'); // Add transparency
-    
+
     ctx.beginPath();
     ctx.fillStyle = gradient;
     ctx.moveTo(centerX, centerY);
@@ -244,17 +308,17 @@ function drawWheel(rotationAngle = 0) {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
     ctx.stroke();
   }
-  
+
   // Draw center hole with gradient
   const centerGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, centerHoleRadius);
   centerGradient.addColorStop(0, '#f8fafc');
   centerGradient.addColorStop(1, '#e2e8f0');
-  
+
   ctx.beginPath();
   ctx.fillStyle = centerGradient;
   ctx.arc(centerX, centerY, centerHoleRadius, 0, Math.PI * 2);
   ctx.fill();
-  
+
   // Center hole border
   ctx.beginPath();
   ctx.arc(centerX, centerY, centerHoleRadius, 0, Math.PI * 2);
@@ -265,16 +329,27 @@ function drawWheel(rotationAngle = 0) {
 
 function spinWheel() {
   if (isSpinning) return;
-  
+
+  // Проверяем, выбрана ли ставка
+  if (!selectedChoice) {
+    const modal = document.getElementById('modal');
+    document.getElementById('modalTitle').textContent = 'Ошибка';
+    document.getElementById('modalResult').textContent = '⚠️';
+    document.getElementById('modalResult').className = 'modal-result';
+    document.getElementById('modalMessage').textContent = 'Сначала выберите ставку!';
+    modal.classList.add('show');
+    return;
+  }
+
   isSpinning = true;
   playSound(440, 0.2);
-  
+
   const spinButton = document.getElementById('spinButton');
   const wheelContainer = document.getElementById('wheelContainer');
   const centerHub = document.getElementById('centerHub');
   const progressRing = document.getElementById('progressRing');
   const pointer = document.getElementById('pointer');
-  
+
   // Update UI
   spinButton.disabled = true;
   spinButton.classList.add('spinning');
@@ -284,44 +359,44 @@ function spinWheel() {
   centerHub.querySelector('.status-text').textContent = 'Удача';
   centerHub.querySelector('.main-text').textContent = 'СПИН!';
   document.querySelectorAll('.bet-option').forEach(opt => opt.classList.add('disabled'));
-  
+
   // Show progress ring
   progressRing.classList.add('active');
-  
+
   // Calculate spin
   const minSpins = 5;
   const maxSpins = 8;
   const spins = Math.floor(Math.random() * (maxSpins - minSpins + 1)) + minSpins;
   const finalAngle = Math.random() * 360;
   const totalRotation = spins * 360 + finalAngle;
-  
+
   const startRotation = currentRotation;
   const endRotation = startRotation + totalRotation;
   const duration = 4000; // 4 seconds
   const startTime = performance.now();
-  
+
   function animate(currentTime) {
     const elapsed = currentTime - startTime;
     const progress = Math.min(elapsed / duration, 1);
-    
+
     // Easing function for more natural spin
     const easeOut = 1 - Math.pow(1 - progress, 3);
     currentRotation = startRotation + (endRotation - startRotation) * easeOut;
-    
+
     drawWheel((currentRotation * Math.PI) / 180);
-    
+
     // Play spinning sound periodically
     if (Math.floor(progress * 40) > Math.floor((progress - 0.01) * 40)) {
       playSound(200 + Math.random() * 100, 0.05);
     }
-    
+
     if (progress < 1) {
       requestAnimationFrame(animate);
     } else {
       finishSpin();
     }
   }
-  
+
   requestAnimationFrame(animate);
 }
 
@@ -334,10 +409,13 @@ function finishSpin() {
   const sectorAngle = 360 / sectors.length;
   const sectorIndex = Math.floor(adjustedAngle / sectorAngle) % sectors.length;
   const result = sectors[sectorIndex].label;
-  
+
   console.log('Debug - Rotation:', normalizedRotation, 'Adjusted:', adjustedAngle, 'Sector:', sectorIndex, 'Result:', result);
   const isWin = result === selectedChoice;
-  
+
+  // Добавляем результат в историю спинов
+  addToSpinHistory(result, isWin);
+
   // Update game state
   gameState.spins++;
   if (isWin) {
@@ -351,13 +429,13 @@ function finishSpin() {
   } else {
     gameState.currentStreak = 0;
   }
-  
+
   // Save stats
   localStorage.setItem('wheelSpins', gameState.spins);
   localStorage.setItem('wheelWins', gameState.wins);
   localStorage.setItem('winStreak', gameState.winStreak);
   localStorage.setItem('currentStreak', gameState.currentStreak);
-  
+
   // Sound effects
   if (isWin) {
     playSound(523.25, 0.3); // C note
@@ -369,26 +447,26 @@ function finishSpin() {
   } else {
     playSound(155.56, 0.5); // Eb note
   }
-  
+
   // Visual effects
   const pointer = document.getElementById('pointer');
   pointer.classList.add('pulse');
   setTimeout(() => pointer.classList.remove('pulse'), 800);
-  
+
   if (isWin) {
     createParticles();
     if (result === 'Secret NFT') {
       createConfetti();
     }
   }
-  
+
   // Reset UI
   setTimeout(() => {
     const spinButton = document.getElementById('spinButton');
     const wheelContainer = document.getElementById('wheelContainer');
     const centerHub = document.getElementById('centerHub');
     const progressRing = document.getElementById('progressRing');
-    
+
     isSpinning = false;
     spinButton.disabled = false;
     spinButton.classList.remove('spinning');
@@ -398,7 +476,7 @@ function finishSpin() {
     centerHub.querySelector('.main-text').textContent = 'СТАРТ!';
     document.querySelectorAll('.bet-option').forEach(opt => opt.classList.remove('disabled'));
     progressRing.classList.remove('active');
-    
+
     showResult({label: result}, isWin);
   }, 1000);
 }
@@ -411,9 +489,9 @@ function showResult(result, isWin) {
 
   title.textContent = 'Результат спина';
   modalResult.textContent = result.label;
-  
+
   modalResult.className = `modal-result ${isWin ? 'win' : 'lose'}`;
-  
+
   if (isWin) {
     message.textContent = '🎉 Вы угадали! Отличная интуиция!';
   } else {
@@ -426,7 +504,7 @@ function showResult(result, isWin) {
 function createParticles() {
   const container = document.getElementById('particles');
   const colors = ['#a855f7', '#ec4899', '#10b981', '#f59e0b', '#06b6d4'];
-  
+
   for (let i = 0; i < 20; i++) {
     const particle = document.createElement('div');
     particle.className = 'particle';
@@ -436,9 +514,9 @@ function createParticles() {
     particle.style.left = Math.random() * 100 + '%';
     particle.style.top = Math.random() * 100 + '%';
     particle.style.opacity = '0.8';
-    
+
     container.appendChild(particle);
-    
+
     // Animate particle
     particle.animate([
       { transform: 'translate(0, 0) scale(1)', opacity: 0.8 },
@@ -453,16 +531,16 @@ function createParticles() {
 function createConfetti() {
   const container = document.getElementById('confetti');
   const colors = ['#a855f7', '#ec4899', '#10b981', '#f59e0b', '#06b6d4', '#ef4444'];
-  
+
   for (let i = 0; i < 50; i++) {
     const confetti = document.createElement('div');
     confetti.className = 'confetti-piece';
     confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
     confetti.style.left = Math.random() * 100 + '%';
     confetti.style.top = '-10px';
-    
+
     container.appendChild(confetti);
-    
+
     confetti.animate([
       { transform: 'translateY(-10px) rotate(0deg)', opacity: 1 },
       { transform: `translateY(${window.innerHeight + 100}px) rotate(720deg)`, opacity: 0 }
@@ -480,6 +558,9 @@ document.addEventListener('DOMContentLoaded', function() {
   initBackgroundParticles();
   initAudio();
 
+  // Initialize spin history display
+  updateSpinHistoryDisplay();
+
   // Bet selection
   document.querySelectorAll('.bet-option').forEach(option => {
     option.addEventListener('click', function() {
@@ -487,6 +568,9 @@ document.addEventListener('DOMContentLoaded', function() {
       this.classList.add('active');
       selectedChoice = this.dataset.choice;
       playSound(500, 0.1);
+      
+      // Активируем кнопку спина когда выбрана ставка
+      document.getElementById('spinButton').disabled = false;
     });
   });
 
@@ -496,7 +580,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Modal close
   document.getElementById('modalButton').addEventListener('click', function() {
     document.getElementById('modal').classList.remove('show');
-    
+
     // Reset center hub
     const centerHub = document.getElementById('centerHub');
     centerHub.querySelector('.status-text').textContent = 'Удача';
@@ -537,26 +621,4 @@ document.addEventListener('touchend', function(e) {
     e.preventDefault();
   }
   lastTouchEnd = now;
-});
-
-// === Проверка выбранной ставки перед запуском колеса ===
-const spinBtn = document.getElementById('spinButton');
-spinBtn.addEventListener('click', function() {
-  if (!selectedChoice) {
-    const modal = document.getElementById('modal');
-    document.getElementById('modalTitle').textContent = 'Ошибка';
-    document.getElementById('modalResult').textContent = '⚠️';
-    document.getElementById('modalResult').className = 'modal-result';
-    document.getElementById('modalMessage').textContent = 'Сначала выберите ставку!';
-    modal.classList.add('show');
-    return;
-  }
-  spinWheel();
-});
-
-// При выборе ставки активируем кнопку
-document.querySelectorAll('.bet-option').forEach(option => {
-  option.addEventListener('click', function() {
-    spinBtn.disabled = false;
-  });
 });
