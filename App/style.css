@@ -182,7 +182,7 @@ html, body{
 /* Main content с увеличенным верхним отступом для адаптации под TMA */
 .main-content {
   flex: 1;
-  padding: 60px 16px 20px; /* Увеличен верхний отступ с 40px до 60px для TMA */
+  padding: 60px 16px 120px; /* Увеличен нижний отступ с 20px до 120px для избежания перекрытия с нижней панелью */
   display: flex;
   align-items: flex-start; /* Изменено с center на flex-start для лучшего размещения */
   justify-content: center;
@@ -192,6 +192,7 @@ html, body{
   width: 100%;
   max-width: 400px;
   position: relative;
+  padding-bottom: 120px; /* Дополнительный отступ снизу для избежания перекрытия с нижней панелью */
 }
 
 /* Section panels */
@@ -503,7 +504,8 @@ canvas#wheel{
   border: 1px solid var(--glass-border);
   border-radius: 16px;
   padding: 12px;
-  margin-bottom: 20px; /* Отступ до нижней панели */
+  margin-bottom: 100px; /* Увеличен отступ до нижней панели */
+  max-width: 100%;
 }
 
 .spin-history-title {
@@ -524,6 +526,8 @@ canvas#wheel{
   scroll-behavior: smooth;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .spin-history::-webkit-scrollbar {
