@@ -126,11 +126,11 @@ function updateProfileStats() {
 
 // Функция для добавления результата в историю спинов
 function addToSpinHistory(prize, isWin) {
-  spinHistory.push({ prize, isWin });
+  spinHistory.unshift({ prize, isWin }); // Добавляем в начало массива
   
   // Ограничиваем историю до 20 последних спинов
   if (spinHistory.length > 20) {
-    spinHistory.shift();
+    spinHistory.pop(); // Удаляем с конца
   }
   
   updateSpinHistoryDisplay();
@@ -169,8 +169,8 @@ function updateSpinHistoryDisplay() {
       cubeClass += ' lose';
     }
     
-    // Добавляем анимацию для последнего элемента
-    if (index === spinHistory.length - 1) {
+    // Добавляем анимацию для первого элемента (самого нового)
+    if (index === 0) {
       cubeClass += ' new';
     }
     
@@ -179,10 +179,7 @@ function updateSpinHistoryDisplay() {
   
   historyContainer.innerHTML = historyHTML;
   
-  // Прокручиваем к последнему элементу
-  setTimeout(() => {
-    historyContainer.scrollLeft = historyContainer.scrollWidth;
-  }, 100);
+  // Прокрутка не нужна, так как новые кубики добавляются в начало
 }
 
 // Section navigation
