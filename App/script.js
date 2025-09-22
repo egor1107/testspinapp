@@ -1,3 +1,24 @@
+// GIF файлы для показа при выигрыше/проигрыше NFT
+const NFT_GIFS = [
+  'gifts/AllGiftsTGG_by_TgEmodziBot_AgADkWwAAvtM6Eg.gif',
+  'gifts/AllGiftsTGG_by_TgEmodziBot_AgADrIIAAg8v6Ug.gif',
+  'gifts/AllGiftsTGG_by_TgEmodziBot_AgADXWYAAmpx8Ug.gif',
+  'gifts/AllGiftsTGG_by_TgEmodziBot_AgADz2cAAryN8Ug.gif',
+  'gifts/AllGiftsTGG_by_TgEmodziBot_AgAD02oAAjiF6Eg.gif',
+  'gifts/AllGiftsTGG_by_TgEmodziBot_AgAD3HIAAoc76Ug.gif',
+  'gifts/AllGiftsTGG_by_TgEmodziBot_AgAD9oIAAvNweEs.gif',
+  'gifts/AllGiftsTGG_by_TgEmodziBot_AgAD23YAAhKX6Ug.gif',
+  'gifts/AllGiftsTGG_by_TgEmodziBot_AgAD43QAAh9oeEs.gif',
+  'gifts/AllGiftsTGG_by_TgEmodziBot_AgADhngAAvBO6Ug.gif',
+  'gifts/AllGiftsTGG_by_TgEmodziBot_AgADj3IAAqQ26Ug.gif',
+  'gifts/AllGiftsTGG_by_TgEmodziBot_AgADjHMAAjND6Eg.gif'
+];
+
+// Функция для получения случайной gif
+function getRandomNFTGif() {
+  return NFT_GIFS[Math.floor(Math.random() * NFT_GIFS.length)];
+}
+
 // Configuration
 const WHEEL_CONFIG = [
   {label: "Звёзды", count: 30, color: '#06b6d4'},
@@ -485,14 +506,56 @@ function showResult(result, isWin) {
   const message = document.getElementById('modalMessage');
 
   title.textContent = 'Результат спина';
-  modalResult.textContent = result.label;
-
   modalResult.className = `modal-result ${isWin ? 'win' : 'lose'}`;
 
-  if (isWin) {
-    message.textContent = '🎉 Вы угадали! Отличная интуиция!';
+  // Проверяем, если результат связан с NFT
+  if (result.label === 'NFT' || result.label === 'Secret NFT') {
+    // Очищаем содержимое и добавляем gif
+    modalResult.innerHTML = '';
+    
+    const gifContainer = document.createElement('div');
+    gifContainer.style.textAlign = 'center';
+    gifContainer.style.width = '100%';
+    
+    const gifImage = document.createElement('img');
+    gifImage.src = getRandomNFTGif();
+    gifImage.style.maxWidth = '200px';
+    gifImage.style.maxHeight = '200px';
+    gifImage.style.borderRadius = '12px';
+    gifImage.style.objectFit = 'contain';
+    
+    gifContainer.appendChild(gifImage);
+    modalResult.appendChild(gifContainer);
+    
+    if (isWin) {
+      message.textContent = '🎉 Вы угадали NFT! Отличная интуиция!';
+    } else {
+      const loseContainer = document.createElement('div');
+      loseContainer.style.textAlign = 'center';
+      
+      const loseText = document.createElement('div');
+      loseText.textContent = 'возможный NFT:';
+      loseText.style.marginBottom = '8px';
+      loseText.style.fontSize = '14px';
+      loseText.style.color = '#b4b4d6';
+      
+      loseContainer.appendChild(loseText);
+      loseContainer.appendChild(gifImage.cloneNode());
+      
+      modalResult.innerHTML = '';
+      modalResult.appendChild(loseContainer);
+      
+      message.textContent = 'В следующий раз обязательно повезёт!';
+    }
   } else {
-    message.textContent = 'В следующий раз обязательно повезёт!';
+    // Обычное отображение для не-NFT призов
+    modalResult.textContent = result.label;
+    
+    if (isWin) {
+      message.textContent = '🎉 Вы угадали! Отличная интуиция!';
+    } else {
+      message.textContent = 'В следующий раз обязательно повезёт!';
+    }
   }
 
   modal.classList.add('show');
