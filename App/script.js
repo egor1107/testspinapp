@@ -1,16 +1,16 @@
 // GIF файлы для показа при выигрыше/проигрыше NFT
 const NFT_GIFS = [
   'gifts/AllGiftsTGG_by_TgEmodziBot_AgADkWwAAvtM6Eg.gif',
+  'gifts/AllGiftsTGG_by_TgEmodziBot_AgAD5X0AAoxVeUs.gif',
   'gifts/AllGiftsTGG_by_TgEmodziBot_AgADrIIAAg8v6Ug.gif',
   'gifts/AllGiftsTGG_by_TgEmodziBot_AgADXWYAAmpx8Ug.gif',
-  'gifts/AllGiftsTGG_by_TgEmodziBot_AgADz2cAAryN8Ug.gif',
+  'gifts/AllGiftsTGG_by_TgEmodziBot_AgADcHkAAhj26Eg.gif',
   'gifts/AllGiftsTGG_by_TgEmodziBot_AgAD02oAAjiF6Eg.gif',
+  'gifts\AllGiftsTGG_by_TgEmodziBot_AgADrIIAAg8v6Ug.gif',
   'gifts/AllGiftsTGG_by_TgEmodziBot_AgAD3HIAAoc76Ug.gif',
-  'gifts/AllGiftsTGG_by_TgEmodziBot_AgAD9oIAAvNweEs.gif',
   'gifts/AllGiftsTGG_by_TgEmodziBot_AgAD23YAAhKX6Ug.gif',
-  'gifts/AllGiftsTGG_by_TgEmodziBot_AgAD43QAAh9oeEs.gif',
-  'gifts/AllGiftsTGG_by_TgEmodziBot_AgADhngAAvBO6Ug.gif',
   'gifts/AllGiftsTGG_by_TgEmodziBot_AgADj3IAAqQ26Ug.gif',
+  'gifts/AllGiftsTGG_by_TgEmodziBot_AgADZ30AAuFC6Ug.gif',
   'gifts/AllGiftsTGG_by_TgEmodziBot_AgADjHMAAjND6Eg.gif'
 ];
 
