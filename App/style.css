@@ -458,7 +458,7 @@ canvas#wheel{
   position: relative;
   overflow: hidden;
   box-shadow: var(--shadow-soft);
-  margin-bottom: 20px; /* Уменьшен отступ снизу с 60px до 20px чтобы кнопка была ближе к нижним вкладкам */
+  margin-bottom: 16px; /* Уменьшен отступ снизу для истории */
 }
 
 .spin-button::before {
@@ -494,6 +494,112 @@ canvas#wheel{
 @keyframes spinButtonPulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.02); }
+}
+
+/* История спинов */
+.spin-history-container {
+  background: var(--glass);
+  backdrop-filter: blur(15px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 12px;
+  margin-bottom: 20px; /* Отступ до нижней панели */
+}
+
+.spin-history-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.spin-history {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 4px 0;
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.spin-history::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+.history-placeholder {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-align: center;
+  width: 100%;
+  padding: 8px 0;
+  font-style: italic;
+}
+
+.history-cube {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  background: var(--glass);
+}
+
+/* Цвета кубиков для выигрышей */
+.history-cube.win-secret-nft {
+  background: linear-gradient(135deg, #ef4444, #f87171);
+  border-color: #ef4444;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.history-cube.win-nft {
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  border-color: #8b5cf6;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+}
+
+.history-cube.win-stars {
+  background: linear-gradient(135deg, #06b6d4, #67e8f9);
+  border-color: #06b6d4;
+  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.3);
+}
+
+.history-cube.win-gift {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  border-color: #f59e0b;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+/* Серые кубики для промахов */
+.history-cube.lose {
+  background: linear-gradient(135deg, #6b7280, #9ca3af);
+  border-color: #6b7280;
+  box-shadow: 0 2px 8px rgba(107, 114, 128, 0.2);
+}
+
+.history-cube:hover {
+  transform: translateY(-1px) scale(1.05);
+}
+
+/* Анимация появления новых кубиков */
+.history-cube.new {
+  animation: cubeAppear 0.5s ease-out;
+}
+
+@keyframes cubeAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 /* Shop and Profile sections */
@@ -912,22 +1018,21 @@ canvas#wheel{
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  font-size: 30px;
 }
 
 .reward-name {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 4px;
 }
 
 .reward-count {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text-secondary);
-  background: rgba(168, 85, 247, 0.2);
-  padding: 2px 6px;
+  background: var(--glass);
+  padding: 2px 8px;
   border-radius: 8px;
   display: inline-block;
 }
@@ -949,52 +1054,9 @@ canvas#wheel{
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 8px;
-  color: var(--text-secondary);
 }
 
 .empty-subtitle {
   font-size: 14px;
   opacity: 0.7;
-}
-
-/* Confetti animation */
-.confetti {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1000;
-}
-
-.confetti-piece {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-}
-
-/* Mobile responsive adjustments */
-@media (max-width: 400px) {
-  .main-content {
-    padding: 80px 12px 16px; /* Дополнительно увеличен верхний отступ для маленьких экранов */
-  }
-  
-  .app-header-inline {
-    padding: 30px 0 10px; /* Увеличен верхний отступ для маленьких экранов */
-  }
-  
-  .wheel-container {
-    max-width: 360px; /* Уменьшен размер колеса для маленьких экранов */
-    margin-bottom: 15px; /* Еще меньше отступ для маленьких экранов */
-  }
-  
-  .controls {
-    margin-top: 15px; /* Еще меньше отступ для маленьких экранов */
-  }
-  
-  .spin-button {
-    margin-bottom: 15px; /* Уменьшен отступ снизу для маленьких экранов */
-  }
 }
