@@ -6,7 +6,7 @@ const NFT_GIFS = [
   'gifts/AllGiftsTGG_by_TgEmodziBot_AgADXWYAAmpx8Ug.gif',
   'gifts/AllGiftsTGG_by_TgEmodziBot_AgADcHkAAhj26Eg.gif',
   'gifts/AllGiftsTGG_by_TgEmodziBot_AgAD02oAAjiF6Eg.gif',
-  'gifts\AllGiftsTGG_by_TgEmodziBot_AgADrIIAAg8v6Ug.gif',
+  'gifts/AllGiftsTGG_by_TgEmodziBot_AgADrIIAAg8v6Ug.gif',
   'gifts/AllGiftsTGG_by_TgEmodziBot_AgAD3HIAAoc76Ug.gif',
   'gifts/AllGiftsTGG_by_TgEmodziBot_AgAD23YAAhKX6Ug.gif',
   'gifts/AllGiftsTGG_by_TgEmodziBot_AgADj3IAAqQ26Ug.gif',
@@ -148,28 +148,28 @@ function updateProfileStats() {
 // Функция для добавления результата в историю спинов
 function addToSpinHistory(prize, isWin) {
   spinHistory.unshift({ prize, isWin }); // Добавляем в начало массива
-  
+
   // Ограничиваем историю до 20 последних спинов
   if (spinHistory.length > 20) {
     spinHistory.pop(); // Удаляем с конца
   }
-  
+
   updateSpinHistoryDisplay();
 }
 
 // Функция для обновления отображения истории спинов
 function updateSpinHistoryDisplay() {
   const historyContainer = document.getElementById('spinHistory');
-  
+
   if (spinHistory.length === 0) {
     historyContainer.innerHTML = '<div class="history-placeholder">Начните крутить колесо!</div>';
     return;
   }
-  
+
   let historyHTML = '';
   spinHistory.forEach((spin, index) => {
     let cubeClass = 'history-cube';
-    
+
     if (spin.isWin) {
       // Определяем класс по типу приза
       switch (spin.prize) {
@@ -189,17 +189,17 @@ function updateSpinHistoryDisplay() {
     } else {
       cubeClass += ' lose';
     }
-    
+
     // Добавляем анимацию для первого элемента (самого нового)
     if (index === 0) {
       cubeClass += ' new';
     }
-    
+
     historyHTML += `<div class="${cubeClass}" title="${spin.isWin ? 'Выигрыш: ' + spin.prize : 'Промах'}"></div>`;
   });
-  
+
   historyContainer.innerHTML = historyHTML;
-  
+
   // Прокрутка не нужна, так как новые кубики добавляются в начало
 }
 
@@ -508,49 +508,49 @@ function showResult(result, isWin) {
   title.textContent = 'Результат спина';
   modalResult.className = `modal-result ${isWin ? 'win' : 'lose'}`;
 
-  // Проверяем, если результат связан с NFT
-  if (result.label === 'NFT' || result.label === 'Secret NFT') {
-    // Очищаем содержимое и добавляем gif
+  // ИЗМЕНЕНО: Показываем гифки только для NFT, но НЕ для Secret NFT
+  if (result.label === 'NFT') {
+    // Очищаем содержимое и добавляем gif только для обычного NFT
     modalResult.innerHTML = '';
-    
+
     const gifContainer = document.createElement('div');
     gifContainer.style.textAlign = 'center';
     gifContainer.style.width = '100%';
-    
+
     const gifImage = document.createElement('img');
     gifImage.src = getRandomNFTGif();
     gifImage.style.maxWidth = '200px';
     gifImage.style.maxHeight = '200px';
     gifImage.style.borderRadius = '12px';
     gifImage.style.objectFit = 'contain';
-    
+
     gifContainer.appendChild(gifImage);
     modalResult.appendChild(gifContainer);
-    
+
     if (isWin) {
       message.textContent = '🎉 Вы угадали NFT! Отличная интуиция!';
     } else {
       const loseContainer = document.createElement('div');
       loseContainer.style.textAlign = 'center';
-      
+
       const loseText = document.createElement('div');
       loseText.textContent = 'возможный NFT:';
       loseText.style.marginBottom = '8px';
       loseText.style.fontSize = '14px';
       loseText.style.color = '#b4b4d6';
-      
+
       loseContainer.appendChild(loseText);
       loseContainer.appendChild(gifImage.cloneNode());
-      
+
       modalResult.innerHTML = '';
       modalResult.appendChild(loseContainer);
-      
+
       message.textContent = 'В следующий раз обязательно повезёт!';
     }
   } else {
-    // Обычное отображение для не-NFT призов
+    // ИЗМЕНЕНО: Для Secret NFT и всех остальных призов показываем обычное текстовое отображение
     modalResult.textContent = result.label;
-    
+
     if (isWin) {
       message.textContent = '🎉 Вы угадали! Отличная интуиция!';
     } else {
@@ -628,7 +628,7 @@ document.addEventListener('DOMContentLoaded', function() {
       this.classList.add('active');
       selectedChoice = this.dataset.choice;
       playSound(500, 0.1);
-      
+
       // Активируем кнопку спина когда выбрана ставка
       document.getElementById('spinButton').disabled = false;
     });
