@@ -1,3 +1,11 @@
+// Backend API configuration
+const BACKEND_URL = 'https://tma-roulette.preview.emergentagent.com';
+const API = `${BACKEND_URL}/api`;
+
+// Telegram Mini App integration
+let telegramUser = null;
+let isTMAEnvironment = false;
+
 // GIF файлы для показа при выигрыше/проигрыше NFT
 const NFT_GIFS = [
   'gifts/AllGiftsTGG_by_TgEmodziBot_AgADkWwAAvtM6Eg.gif',
@@ -29,14 +37,12 @@ const WHEEL_CONFIG = [
 
 // Game state
 let gameState = {
-  spins: parseInt(localStorage.getItem('wheelSpins') || '0'),
-  wins: parseInt(localStorage.getItem('wheelWins') || '0'),
-  winStreak: parseInt(localStorage.getItem('winStreak') || '0'),
-  currentStreak: parseInt(localStorage.getItem('currentStreak') || '0'),
-  lastDaily: localStorage.getItem('lastDaily') || '0',
+  spins: 0,
+  wins: 0,
+  winStreak: 0,
+  currentStreak: 0,
   soundEnabled: localStorage.getItem('soundEnabled') !== 'false',
-  achievements: JSON.parse(localStorage.getItem('achievements') || '[]'),
-  inventory: JSON.parse(localStorage.getItem('wheelInventory') || '{}'),
+  inventory: {},
   currentSection: 'wheel'
 };
 
@@ -74,6 +80,144 @@ function playSound(frequency, duration, type = 'sine') {
   oscillator.stop(audioContext.currentTime + duration);
 }
 
+// TMA Initialization and Authentication
+async function initTMA() {
+  try {
+    // Check if running in Telegram
+    if (!window.Telegram?.WebApp) {
+      console.log('Not in TMA environment');
+      return false;
+    }
+
+    const tg = window.Telegram.WebApp;
+    
+    // Check if initData exists
+    if (!tg.initData) {
+      console.log('No Telegram init data');
+      return false;
+    }
+
+    // Setup Telegram WebApp
+    tg.ready();
+    tg.expand();
+    tg.setHeaderColor('#0f0f23');
+    
+    console.log('Telegram WebApp initialized');
+    
+    try {
+      // Authenticate with backend
+      const response = await fetch(`${API}/auth`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain'
+        },
+        body: tg.initData
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        telegramUser = data.user;
+        gameState = {
+          ...gameState,
+          ...data.stats
+        };
+        console.log('User authenticated:', telegramUser);
+        isTMAEnvironment = true;
+        return true;
+      } else {
+        console.error('Authentication failed:', response.status);
+        return false;
+      }
+    } catch (authError) {
+      console.error('Authentication error:', authError);
+      // Try test authentication for development
+      return await tryTestAuth();
+    }
+  } catch (error) {
+    console.error('TMA initialization error:', error);
+    return await tryTestAuth();
+  }
+}
+
+// Fallback test authentication for development
+async function tryTestAuth() {
+  try {
+    const response = await fetch(`${API}/auth/test`, {
+      method: 'POST'
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      telegramUser = data.user;
+      gameState = {
+        ...gameState,
+        ...data.stats
+      };
+      console.log('Test authentication successful:', telegramUser);
+      isTMAEnvironment = true;
+      return true;
+    }
+  } catch (error) {
+    console.error('Test authentication failed:', error);
+  }
+  return false;
+}
+
+// Save user stats to backend
+async function saveUserStats() {
+  if (!telegramUser) return;
+
+  try {
+    await fetch(`${API}/user/stats?telegram_id=${telegramUser.id}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        spins: gameState.spins,
+        wins: gameState.wins,
+        win_streak: gameState.winStreak,
+        current_streak: gameState.currentStreak,
+        inventory: gameState.inventory
+      })
+    });
+  } catch (error) {
+    console.error('Failed to save stats:', error);
+  }
+}
+
+// Record spin result
+async function recordSpin(result, isWin) {
+  if (!telegramUser) return;
+
+  try {
+    const response = await fetch(`${API}/user/spin?telegram_id=${telegramUser.id}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        result: result,
+        is_win: isWin
+      })
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success) {
+        gameState = {
+          ...gameState,
+          ...data.stats
+        };
+        updateProfileStats();
+        updateInventoryDisplay();
+      }
+    }
+  } catch (error) {
+    console.error('Failed to record spin:', error);
+  }
+}
+
 // Initialize background particles
 function initBackgroundParticles() {
   const container = document.getElementById('bgParticles');
@@ -102,8 +246,8 @@ function addRewardToInventory(rewardName) {
     gameState.inventory[rewardName] = 0;
   }
   gameState.inventory[rewardName]++;
-  localStorage.setItem('wheelInventory', JSON.stringify(gameState.inventory));
   updateInventoryDisplay();
+  saveUserStats();
 }
 
 function updateInventoryDisplay() {
@@ -434,25 +578,8 @@ function finishSpin() {
   // Добавляем результат в историю спинов
   addToSpinHistory(result, isWin);
 
-  // Update game state
-  gameState.spins++;
-  if (isWin) {
-    gameState.wins++;
-    gameState.currentStreak++;
-    if (gameState.currentStreak > gameState.winStreak) {
-      gameState.winStreak = gameState.currentStreak;
-    }
-    // Add reward to inventory
-    addRewardToInventory(result);
-  } else {
-    gameState.currentStreak = 0;
-  }
-
-  // Save stats
-  localStorage.setItem('wheelSpins', gameState.spins);
-  localStorage.setItem('wheelWins', gameState.wins);
-  localStorage.setItem('winStreak', gameState.winStreak);
-  localStorage.setItem('currentStreak', gameState.currentStreak);
+  // Record spin result to backend
+  recordSpin(result, isWin);
 
   // Sound effects
   if (isWin) {
@@ -612,7 +739,17 @@ function createConfetti() {
 }
 
 // Event listeners
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+  // Check TMA environment first
+  const isTMA = await initTMA();
+  
+  if (!isTMA) {
+    // Show error screen
+    document.getElementById('tmaError').style.display = 'flex';
+    document.querySelector('.app-container').style.display = 'none';
+    return;
+  }
+
   // Initialize wheel
   drawWheel();
   initBackgroundParticles();
@@ -620,6 +757,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Initialize spin history display
   updateSpinHistoryDisplay();
+
+  // Initialize profile data
+  updateProfileStats();
+  updateInventoryDisplay();
 
   // Bet selection
   document.querySelectorAll('.bet-option').forEach(option => {
@@ -661,10 +802,6 @@ document.addEventListener('DOMContentLoaded', function() {
   } else {
     soundSlider.classList.remove('active');
   }
-
-  // Initialize profile data
-  updateProfileStats();
-  updateInventoryDisplay();
 });
 
 // Prevent page refresh on mobile pull-to-refresh
