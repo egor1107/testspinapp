@@ -6,7 +6,7 @@
 const tg = window.Telegram?.WebApp;
 
 // Backend API configuration  
-const BACKEND_URL = 'https://tg-spin-stats.preview.emergentagent.com'; // Используем прямой URL
+const BACKEND_URL = 'https://roulette-app-hxdb.onrender.com/'; // Используем прямой URL
 const API = `${BACKEND_URL}/api`;
 
 // TMA user data
