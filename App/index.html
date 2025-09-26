@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lucky Wheel - Telegram Mini App</title>
   <link rel="stylesheet" href="style.css">
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
   <!-- Background particles -->
@@ -23,7 +22,7 @@
             <div class="header-content">
               <h1 class="app-title">Lucky Wheel</h1>
               <div class="balance-container" style="cursor:pointer;" onclick="showBalanceModal()">
-                <span class="balance-text">1,000 <img src="images/Star Fill.svg" alt="звезды" class="star-icon" onerror="this.outerHTML='⭐'"></span>
+                <span class="balance-text">1,000 <img src="images\Star Fill.svg" alt="звезды" class="star-icon"></span>
               </div>
             </div>
           </div>
@@ -86,7 +85,7 @@
             <div class="header-content">
               <h1 class="app-title">Lucky Wheel</h1>
               <div class="balance-container" style="cursor:pointer;" onclick="showBalanceModal()">
-                <span class="balance-text">1,000 <img src="images/Star Fill.svg" alt="звезды" class="star-icon" onerror="this.outerHTML='⭐'"></span>
+                <span class="balance-text">1,000 <img src="images\Star Fill.svg" alt="звезды" class="star-icon"></span>
               </div>
             </div>
           </div>
@@ -110,7 +109,7 @@
             <div class="header-content">
               <h1 class="app-title">Lucky Wheel</h1>
               <div class="balance-container" style="cursor:pointer;" onclick="showBalanceModal()">
-                <span class="balance-text">1,000 <img src="images/Star Fill.svg" alt="звезды" class="star-icon" onerror="this.outerHTML='⭐'"></span>
+                <span class="balance-text">1,000 <img src="images\Star Fill.svg" alt="звезды" class="star-icon"></span>
               </div>
             </div>
           </div>
@@ -152,13 +151,13 @@
     <div class="bottom-nav">
       <div class="nav-container">
         <div class="nav-item" onclick="showSection('shop')">
-          <div class="nav-icon"><img src="images/Market Fill.svg" alt="магазин" width="28" height="28" onerror="this.outerHTML='🛒'"></div>
+          <div class="nav-icon"><img src="images\Market Fill.svg" alt="магазин" width="28" height="28"></div>
         </div>
         <div class="nav-item active" onclick="showSection('wheel')">
-          <div class="nav-icon"><img src="images/Gift Fill.svg" alt="колесо" width="28" height="28" onerror="this.outerHTML='🎁'"></div>
+          <div class="nav-icon"><img src="images\Gift Fill.svg" alt="колесо" width="28" height="28"></div>
         </div>
         <div class="nav-item" onclick="showSection('profile')">
-          <div class="nav-icon"><img src="images/User Circle Outline.svg" alt="профиль" width="28" height="28" onerror="this.outerHTML='👤'"></div>
+          <div class="nav-icon"><img src="images\User Circle Outline.svg" alt="профиль" width="28" height="28"></div>
         </div>
       </div>
     </div>
@@ -175,16 +174,6 @@
   </div>
   <!-- Confetti container -->
   <div class="confetti" id="confetti"></div>
-
-  <!-- TMA Access Control -->
-  <div id="tmaError" class="tma-error" style="display: none;">
-    <div class="error-content">
-      <div class="error-icon">🚫</div>
-      <h2>Доступ ограничен</h2>
-      <p>Это приложение работает только в Telegram Mini App</p>
-      <p>Откройте его через Telegram бота</p>
-    </div>
-  </div>
 
   <script src="script.js"></script>
 </body>
