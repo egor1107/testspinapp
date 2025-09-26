@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
-:root{
+:root {
   /* Dark gradient theme */
   --bg-primary: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #2d1b69 100%);
   --bg-secondary: rgba(30, 30, 60, 0.95);
@@ -21,12 +21,12 @@
   --shadow-strong: 0 20px 60px rgba(0, 0, 20, 0.6);
 }
 
-* { 
+* {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
 }
 
-html, body{
+html, body {
   height: 100%;
   margin: 0;
   padding: 0;
@@ -38,6 +38,42 @@ html, body{
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* TMA Error Screen */
+.tma-error {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.error-content {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.error-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+}
+
+.error-content h2 {
+  font-size: 28px;
+  margin-bottom: 16px;
+  color: var(--accent-error);
+}
+
+.error-content p {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
 }
 
 /* Animated background particles */
@@ -210,7 +246,7 @@ html, body{
 }
 
 /* Убраны рамки у панели */
-.panel{
+.panel {
   background: transparent;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -237,7 +273,7 @@ html, body{
   padding: 20px;
 }
 
-canvas#wheel{
+canvas#wheel {
   width: 100%;
   height: 100%;
   border-radius: 50%;
@@ -251,9 +287,9 @@ canvas#wheel{
 }
 
 /* Enhanced pointer with glow */
-.pointer{
+.pointer {
   position: absolute;
-  top: -16px; 
+  top: -16px;
   left: 50%;
   transform: translateX(-50%);
   width: 0;
@@ -276,13 +312,13 @@ canvas#wheel{
 }
 
 /* Enhanced center hub */
-.center-hub{
+.center-hub {
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 140px; /* Увеличен с 130px до 140px */
-  height: 140px; /* Увеличен с 130px до 140px */
+  width: 280px; /* Увеличен с 130px до 140px */
+  height: 280px; /* Увеличен с 130px до 140px */
   border-radius: 50%;
   background: white;
   border: 2px solid #f0f0f0;
@@ -291,7 +327,7 @@ canvas#wheel{
   justify-content: center;
   flex-direction: column;
   z-index: 15;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
 }
 
@@ -300,7 +336,7 @@ canvas#wheel{
   box-shadow: var(--shadow-strong);
 }
 
-.center-hub .status-text{
+.center-hub .status-text {
   font-size: 11px;
   color: #999;
   margin-bottom: 2px;
@@ -309,7 +345,7 @@ canvas#wheel{
   text-transform: uppercase;
 }
 
-.center-hub .main-text{
+.center-hub .main-text {
   font-size: 16px;
   font-weight: 800;
   color: #8b5cf6;
@@ -337,11 +373,11 @@ canvas#wheel{
 }
 
 /* Controls section - уменьшен отступ сверху */
-.controls{
+.controls {
   margin-top: 20px; /* Уменьшен отступ с 60px до 20px чтобы подвинуть кнопки ближе к колесу */
 }
 
-.bet-grid{
+.bet-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
@@ -349,7 +385,7 @@ canvas#wheel{
 }
 
 /* Уменьшены кнопки выбора ставок */
-.bet-option{
+.bet-option {
   padding: 10px 8px;
   border-radius: 14px;
   cursor: pointer;
@@ -388,16 +424,16 @@ canvas#wheel{
 
 .bet-option:hover:not(.disabled).active {
   transform: translateY(-5px) scale(1.08);
-  box-shadow: 
+  box-shadow:
     var(--shadow-strong),
     0 0 0 5px rgba(255, 255, 255, 0.4),
     0 0 30px rgba(255, 255, 255, 0.8);
 }
 
-.bet-option.active{
+.bet-option.active {
   border: 3px solid #ffffff;
   transform: translateY(-4px) scale(1.05);
-  box-shadow: 
+  box-shadow:
     var(--shadow-strong),
     0 0 0 4px rgba(255, 255, 255, 0.3),
     0 0 20px rgba(255, 255, 255, 0.5);
@@ -407,21 +443,21 @@ canvas#wheel{
 }
 
 @keyframes activeBetPulse {
-  0%, 100% { 
-    box-shadow: 
+  0%, 100% {
+    box-shadow:
       var(--shadow-strong),
       0 0 0 4px rgba(255, 255, 255, 0.3),
       0 0 20px rgba(255, 255, 255, 0.5);
   }
-  50% { 
-    box-shadow: 
+  50% {
+    box-shadow:
       var(--shadow-strong),
       0 0 0 6px rgba(255, 255, 255, 0.5),
       0 0 25px rgba(255, 255, 255, 0.7);
   }
 }
 
-.bet-option.disabled{
+.bet-option.disabled {
   opacity: 0.5;
   pointer-events: none;
   filter: grayscale(0.3);
@@ -442,7 +478,7 @@ canvas#wheel{
   border-radius: 8px;
 }
 
-.spin-button{
+.spin-button {
   display: block;
   width: 100%;
   padding: 20px;
@@ -468,7 +504,7 @@ canvas#wheel{
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
   transition: left 0.6s ease;
 }
 
@@ -718,7 +754,7 @@ canvas#wheel{
 }
 
 /* Enhanced modal */
-.modal{
+.modal {
   position: fixed;
   left: 0;
   right: 0;
@@ -743,7 +779,7 @@ canvas#wheel{
   to { opacity: 1; }
 }
 
-.modal-content{
+.modal-content {
   background: var(--panel);
   backdrop-filter: blur(20px);
   padding: 32px 24px;
@@ -763,7 +799,7 @@ canvas#wheel{
   to { transform: scale(1); opacity: 1; }
 }
 
-.modal-title{
+.modal-title {
   font-size: 20px;
   font-weight: 700;
   margin-bottom: 16px;
@@ -811,7 +847,7 @@ canvas#wheel{
   line-height: 1.5;
 }
 
-.modal-button{
+.modal-button {
   margin-top: 24px;
   padding: 16px 32px;
   background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
@@ -852,47 +888,14 @@ canvas#wheel{
 }
 
 @keyframes progressPulse {
-  0%, 100% { 
+  0%, 100% {
     border-color: var(--accent-primary);
     transform: scale(1);
   }
-  50% { 
+  50% {
     border-color: var(--accent-secondary);
     transform: scale(1.02);
   }
-}
-
-/* Achievement notification */
-.achievement {
-  position: fixed;
-  top: 100px;
-  right: 20px;
-  background: var(--panel);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border);
-  border-radius: 16px;
-  padding: 16px;
-  max-width: 300px;
-  transform: translateX(100%);
-  transition: transform 0.3s ease;
-  z-index: 150;
-  box-shadow: var(--shadow-medium);
-}
-
-.achievement.show {
-  transform: translateX(0);
-}
-
-.achievement-title {
-  font-weight: 700;
-  font-size: 16px;
-  margin-bottom: 4px;
-  color: var(--accent-success);
-}
-
-.achievement-desc {
-  font-size: 14px;
-  color: var(--text-secondary);
 }
 
 /* Profile specific styles */
