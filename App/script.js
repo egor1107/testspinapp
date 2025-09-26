@@ -1,3 +1,140 @@
+// =============================================================================
+// TELEGRAM MINI APP INTEGRATION
+// =============================================================================
+
+// Telegram Web App instance
+const tg = window.Telegram?.WebApp;
+
+// Backend API configuration  
+const BACKEND_URL = 'https://tg-spin-stats.preview.emergentagent.com'; // Используем прямой URL
+const API = `${BACKEND_URL}/api`;
+
+// TMA user data
+let telegramUser = null;
+let isInitialized = false;
+
+// Initialize Telegram Mini App
+async function initTelegramApp() {
+  if (!tg) {
+    alert('Это приложение работает только в Telegram!');
+    return false;
+  }
+
+  if (!tg.initData) {
+    alert('Это приложение работает только в Telegram!');
+    return false;
+  }
+
+  try {
+    // Initialize TMA
+    tg.ready();
+    tg.expand();
+    
+    // Get user profile from backend
+    const response = await fetch(`${API}/user/profile`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${tg.initData}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const profile = await response.json();
+      telegramUser = profile;
+      
+      // Initialize game state from profile
+      gameState = {
+        spins: profile.spins,
+        wins: profile.wins,
+        winStreak: profile.win_streak,
+        currentStreak: profile.current_streak,
+        soundEnabled: profile.sound_enabled,
+        inventory: profile.inventory,
+        currentSection: 'wheel',
+        balance: profile.balance
+      };
+      
+      isInitialized = true;
+      return true;
+    } else {
+      throw new Error('Failed to get user profile');
+    }
+  } catch (error) {
+    console.error('TMA initialization failed:', error);
+    alert('Ошибка инициализации приложения');
+    return false;
+  }
+}
+
+// Save user stats to backend
+async function saveUserStats(stats) {
+  if (!tg || !tg.initData) return;
+  
+  try {
+    await fetch(`${API}/user/stats`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${tg.initData}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        spins: stats.spins,
+        wins: stats.wins,
+        win_streak: stats.winStreak,
+        current_streak: stats.currentStreak,
+        inventory: stats.inventory
+      })
+    });
+  } catch (error) {
+    console.error('Failed to save stats:', error);
+  }
+}
+
+// Save spin result to backend
+async function saveSpinResult(prize, isWin, betChoice) {
+  if (!tg || !tg.initData) return;
+  
+  try {
+    await fetch(`${API}/spin/result`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${tg.initData}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        prize: prize,
+        is_win: isWin,
+        bet_choice: betChoice
+      })
+    });
+  } catch (error) {
+    console.error('Failed to save spin result:', error);
+  }
+}
+
+// Save sound setting to backend
+async function saveSoundSetting(soundEnabled) {
+  if (!tg || !tg.initData) return;
+  
+  try {
+    await fetch(`${API}/user/sound`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${tg.initData}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(soundEnabled)
+    });
+  } catch (error) {
+    console.error('Failed to save sound setting:', error);
+  }
+}
+
+// =============================================================================
+// ORIGINAL ROULETTE GAME CODE (WITH TMA MODIFICATIONS)
+// =============================================================================
+
 // GIF файлы для показа при выигрыше/проигрыше NFT
 const NFT_GIFS = [
   'gifts/AllGiftsTGG_by_TgEmodziBot_AgADkWwAAvtM6Eg.gif',
@@ -27,19 +164,19 @@ const WHEEL_CONFIG = [
   {label: "Secret NFT", count: 1, color: '#ef4444'}
 ];
 
-// Game state
+// Game state - modified to work with TMA backend
 let gameState = {
-  spins: parseInt(localStorage.getItem('wheelSpins') || '0'),
-  wins: parseInt(localStorage.getItem('wheelWins') || '0'),
-  winStreak: parseInt(localStorage.getItem('winStreak') || '0'),
-  currentStreak: parseInt(localStorage.getItem('currentStreak') || '0'),
-  lastDaily: localStorage.getItem('lastDaily') || '0',
-  soundEnabled: localStorage.getItem('soundEnabled') !== 'false',
-  inventory: JSON.parse(localStorage.getItem('wheelInventory') || '{}'),
-  currentSection: 'wheel'
+  spins: 0,
+  wins: 0,
+  winStreak: 0,
+  currentStreak: 0,
+  soundEnabled: true,
+  inventory: {},
+  currentSection: 'wheel',
+  balance: 1000
 };
 
-// История спинов (только в текущей сессии, не сохраняется в localStorage)
+// История спинов (только в текущей сессии, не сохраняется в backend)
 let spinHistory = [];
 
 // Audio context for sound effects
@@ -101,7 +238,6 @@ function addRewardToInventory(rewardName) {
     gameState.inventory[rewardName] = 0;
   }
   gameState.inventory[rewardName]++;
-  localStorage.setItem('wheelInventory', JSON.stringify(gameState.inventory));
   updateInventoryDisplay();
 }
 
@@ -198,8 +334,6 @@ function updateSpinHistoryDisplay() {
   });
 
   historyContainer.innerHTML = historyHTML;
-
-  // Прокрутка не нужна, так как новые кубики добавляются в начало
 }
 
 // Section navigation
@@ -221,10 +355,10 @@ function showSection(section) {
   }
 }
 
-// Sound toggle
+// Sound toggle - modified to save to backend
 function toggleSound() {
   gameState.soundEnabled = !gameState.soundEnabled;
-  localStorage.setItem('soundEnabled', gameState.soundEnabled);
+  saveSoundSetting(gameState.soundEnabled); // Save to backend
 
   const slider = document.getElementById('soundSlider');
   if (gameState.soundEnabled) {
@@ -433,6 +567,9 @@ function finishSpin() {
   // Добавляем результат в историю спинов
   addToSpinHistory(result, isWin);
 
+  // Save spin result to backend
+  saveSpinResult(result, isWin, selectedChoice);
+
   // Update game state
   gameState.spins++;
   if (isWin) {
@@ -447,11 +584,8 @@ function finishSpin() {
     gameState.currentStreak = 0;
   }
 
-  // Save stats
-  localStorage.setItem('wheelSpins', gameState.spins);
-  localStorage.setItem('wheelWins', gameState.wins);
-  localStorage.setItem('winStreak', gameState.winStreak);
-  localStorage.setItem('currentStreak', gameState.currentStreak);
+  // Save stats to backend
+  saveUserStats(gameState);
 
   // Sound effects
   if (isWin) {
@@ -610,9 +744,39 @@ function createConfetti() {
   }
 }
 
+// =============================================================================
+// MAIN INITIALIZATION
+// =============================================================================
+
 // Event listeners
-document.addEventListener('DOMContentLoaded', function() {
-  // Initialize wheel
+document.addEventListener('DOMContentLoaded', async function() {
+  // Initialize Telegram Mini App first
+  const tmaInitialized = await initTelegramApp();
+  
+  if (!tmaInitialized) {
+    // If TMA failed, hide the app
+    document.body.innerHTML = `
+      <div style="
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        height: 100vh; 
+        background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #2d1b69 100%);
+        color: white;
+        font-family: 'Inter', sans-serif;
+        text-align: center;
+        padding: 20px;
+      ">
+        <div>
+          <h2 style="margin-bottom: 20px;">⚠️ Ошибка доступа</h2>
+          <p>Это приложение работает только в Telegram!</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // Initialize wheel and game components
   drawWheel();
   initBackgroundParticles();
   initAudio();
