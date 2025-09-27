@@ -19,10 +19,10 @@ function getRandomNFTGif() {
   return NFT_GIFS[Math.floor(Math.random() * NFT_GIFS.length)];
 }
 
-// Configuration
+// Configuration - обновлено для новых призов
 const WHEEL_CONFIG = [
-  {label: "Звёзды", count: 30, color: '#06b6d4'},
-  {label: "Подарок", count: 12, color: '#f59e0b'},
+  {label: "2x", count: 30, color: '#06b6d4'},
+  {label: "3x", count: 12, color: '#f59e0b'},
   {label: "NFT", count: 5, color: '#8b5cf6'},
   {label: "Secret NFT", count: 1, color: '#ef4444'}
 ];
@@ -34,7 +34,6 @@ let gameState = {
   winStreak: parseInt(localStorage.getItem('winStreak') || '0'),
   currentStreak: parseInt(localStorage.getItem('currentStreak') || '0'),
   lastDaily: localStorage.getItem('lastDaily') || '0',
-  soundEnabled: localStorage.getItem('soundEnabled') !== 'false',
   inventory: JSON.parse(localStorage.getItem('wheelInventory') || '{}'),
   currentSection: 'wheel'
 };
@@ -42,41 +41,10 @@ let gameState = {
 // История спинов (только в текущей сессии, не сохраняется в localStorage)
 let spinHistory = [];
 
-// Audio context for sound effects
-let audioContext = null;
-
-function initAudio() {
-  if (!gameState.soundEnabled || audioContext) return;
-  try {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  } catch (e) {
-    console.log('Audio not supported');
-  }
-}
-
-function playSound(frequency, duration, type = 'sine') {
-  if (!audioContext || !gameState.soundEnabled) return;
-
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
-
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-
-  oscillator.frequency.value = frequency;
-  oscillator.type = type;
-
-  gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-
-  oscillator.start(audioContext.currentTime);
-  oscillator.stop(audioContext.currentTime + duration);
-}
-
 // Initialize background particles
 function initBackgroundParticles() {
   const container = document.getElementById('bgParticles');
-  const particleCount = 20;
+  const particleCount = 0;
 
   for (let i = 0; i < particleCount; i++) {
     const particle = document.createElement('div');
@@ -88,12 +56,12 @@ function initBackgroundParticles() {
   }
 }
 
-// Reward system
+// Reward system - обновлено для новых призов
 const rewardConfig = {
   'Secret NFT': { emoji: '💎', rarity: 'legendary' },
   'NFT': { emoji: '🎨', rarity: 'epic' },
-  'Звёзды': { emoji: '⭐', rarity: 'common' },
-  'Подарок': { emoji: '🎁', rarity: 'rare' }
+  '2x': { emoji: '⭐', rarity: 'common' },
+  '3x': { emoji: '🎁', rarity: 'rare' }
 };
 
 function addRewardToInventory(rewardName) {
@@ -144,7 +112,7 @@ function updateProfileStats() {
   document.getElementById('profileSpins').textContent = gameState.spins;
 }
 
-// Функция для добавления результата в историю спинов
+// Функция для добавления результата в историю спинов - обновлено для новых призов
 function addToSpinHistory(prize, isWin) {
   spinHistory.unshift({ prize, isWin }); // Добавляем в начало массива
 
@@ -156,7 +124,7 @@ function addToSpinHistory(prize, isWin) {
   updateSpinHistoryDisplay();
 }
 
-// Функция для обновления отображения истории спинов
+// Функция для обновления отображения истории спинов - обновлено для новых призов
 function updateSpinHistoryDisplay() {
   const historyContainer = document.getElementById('spinHistory');
 
@@ -178,11 +146,11 @@ function updateSpinHistoryDisplay() {
         case 'NFT':
           cubeClass += ' win-nft';
           break;
-        case 'Звёзды':
-          cubeClass += ' win-stars';
+        case '2x':
+          cubeClass += ' win-2x';
           break;
-        case 'Подарок':
-          cubeClass += ' win-gift';
+        case '3x':
+          cubeClass += ' win-3x';
           break;
       }
     } else {
@@ -218,21 +186,6 @@ function showSection(section) {
   if (section === 'profile') {
     updateProfileStats();
     updateInventoryDisplay();
-  }
-}
-
-// Sound toggle
-function toggleSound() {
-  gameState.soundEnabled = !gameState.soundEnabled;
-  localStorage.setItem('soundEnabled', gameState.soundEnabled);
-
-  const slider = document.getElementById('soundSlider');
-  if (gameState.soundEnabled) {
-    slider.classList.add('active');
-    initAudio();
-    playSound(800, 0.1);
-  } else {
-    slider.classList.remove('active');
   }
 }
 
@@ -326,21 +279,21 @@ function drawWheel(rotationAngle = 0) {
     ctx.stroke();
   }
 
-  // Draw center hole with gradient
+  // Draw center hole with new color - изменен цвет на фоновый
   const centerGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, centerHoleRadius);
-  centerGradient.addColorStop(0, '#f8fafc');
-  centerGradient.addColorStop(1, '#e2e8f0');
+  centerGradient.addColorStop(0, '#1d232a');
+  centerGradient.addColorStop(1, '#1d232a');
 
   ctx.beginPath();
   ctx.fillStyle = centerGradient;
   ctx.arc(centerX, centerY, centerHoleRadius, 0, Math.PI * 2);
   ctx.fill();
 
-  // Center hole border
+  // Center hole border - изменен цвет границы
   ctx.beginPath();
   ctx.arc(centerX, centerY, centerHoleRadius, 0, Math.PI * 2);
   ctx.lineWidth = 2;
-  ctx.strokeStyle = 'rgba(168, 85, 247, 0.3)';
+  ctx.strokeStyle = '#1d232a';
   ctx.stroke();
 }
 
@@ -359,7 +312,6 @@ function spinWheel() {
   }
 
   isSpinning = true;
-  playSound(440, 0.2);
 
   const spinButton = document.getElementById('spinButton');
   const wheelContainer = document.getElementById('wheelContainer');
@@ -370,11 +322,10 @@ function spinWheel() {
   // Update UI
   spinButton.disabled = true;
   spinButton.classList.add('spinning');
-  spinButton.textContent = 'Крутится...';
+  spinButton.querySelector('.button-content span').textContent = 'Spinning';
+  spinButton.querySelector('.button-star-icon').style.display = 'none'; // Скрываем иконку звездочки
   wheelContainer.classList.add('spinning');
   centerHub.classList.add('spinning');
-  centerHub.querySelector('.status-text').textContent = 'Удача';
-  centerHub.querySelector('.main-text').textContent = 'СПИН!';
   document.querySelectorAll('.bet-option').forEach(opt => opt.classList.add('disabled'));
 
   // Show progress ring
@@ -401,11 +352,6 @@ function spinWheel() {
     currentRotation = startRotation + (endRotation - startRotation) * easeOut;
 
     drawWheel((currentRotation * Math.PI) / 180);
-
-    // Play spinning sound periodically
-    if (Math.floor(progress * 40) > Math.floor((progress - 0.01) * 40)) {
-      playSound(200 + Math.random() * 100, 0.05);
-    }
 
     if (progress < 1) {
       requestAnimationFrame(animate);
@@ -453,18 +399,6 @@ function finishSpin() {
   localStorage.setItem('winStreak', gameState.winStreak);
   localStorage.setItem('currentStreak', gameState.currentStreak);
 
-  // Sound effects
-  if (isWin) {
-    playSound(523.25, 0.3); // C note
-    if (result === 'Secret NFT') {
-      // Special jackpot sound
-      setTimeout(() => playSound(659.25, 0.3), 100); // E note
-      setTimeout(() => playSound(783.99, 0.3), 200); // G note
-    }
-  } else {
-    playSound(155.56, 0.5); // Eb note
-  }
-
   // Visual effects
   const pointer = document.getElementById('pointer');
   pointer.classList.add('pulse');
@@ -487,10 +421,10 @@ function finishSpin() {
     isSpinning = false;
     spinButton.disabled = false;
     spinButton.classList.remove('spinning');
-    spinButton.textContent = 'Крутить колесо';
+    spinButton.querySelector('.button-content span').textContent = 'Spin for 125';
+    spinButton.querySelector('.button-star-icon').style.display = 'inline-block'; // Показываем иконку звездочки обратно
     wheelContainer.classList.remove('spinning');
     centerHub.classList.remove('spinning');
-    centerHub.querySelector('.main-text').textContent = 'СТАРТ!';
     document.querySelectorAll('.bet-option').forEach(opt => opt.classList.remove('disabled'));
     progressRing.classList.remove('active');
 
@@ -498,6 +432,7 @@ function finishSpin() {
   }, 1000);
 }
 
+// Обновленная функция показа результатов с новой логикой наград
 function showResult(result, isWin) {
   const modal = document.getElementById('modal');
   const title = document.getElementById('modalTitle');
@@ -547,13 +482,28 @@ function showResult(result, isWin) {
       message.textContent = 'В следующий раз обязательно повезёт!';
     }
   } else {
-    // ИЗМЕНЕНО: Для Secret NFT и всех остальных призов показываем обычное текстовое отображение
-    modalResult.textContent = result.label;
-
-    if (isWin) {
-      message.textContent = '🎉 Вы угадали! Отличная интуиция!';
+    // ИЗМЕНЕНО: Для Secret NFT, 2x и 3x показываем обычное текстовое отображение
+    if (result.label === '2x') {
+      modalResult.innerHTML = '<span style="margin-right: 0px;">2x → 250</span><img src="images/Star Fill.svg" alt="звезды" style="height: 20px; width: auto; display: inline-block; filter: sepia(1) saturate(5) hue-rotate(10deg); vertical-align: middle; margin-left: 3px; margin-right: 0px; padding: 0px;">';
+      if (isWin) {
+        message.textContent = '🎉 Вы угадали! Получаете 250 звезд!';
+      } else {
+        message.textContent = 'В следующий раз обязательно повезёт!';
+      }
+    } else if (result.label === '3x') {
+      modalResult.innerHTML = '<span style="margin-right: 0px;">3x → 375</span><img src="images/Star Fill.svg" alt="звезды" style="height: 20px; width: auto; display: inline-block; filter: sepia(1) saturate(5) hue-rotate(10deg); vertical-align: middle; margin-left: 3px; margin-right: 0px; padding: 0px;">';
+      if (isWin) {
+        message.textContent = '🎉 Вы угадали! Получаете 375 звезд!';
+      } else {
+        message.textContent = 'В следующий раз обязательно повезёт!';
+      }
     } else {
-      message.textContent = 'В следующий раз обязательно повезёт!';
+      modalResult.textContent = result.label;
+      if (isWin) {
+        message.textContent = '🎉 Вы угадали! Отличная интуиция!';
+      } else {
+        message.textContent = 'В следующий раз обязательно повезёт!';
+      }
     }
   }
 
@@ -615,7 +565,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize wheel
   drawWheel();
   initBackgroundParticles();
-  initAudio();
 
   // Initialize spin history display
   updateSpinHistoryDisplay();
@@ -626,7 +575,6 @@ document.addEventListener('DOMContentLoaded', function() {
       document.querySelectorAll('.bet-option').forEach(opt => opt.classList.remove('active'));
       this.classList.add('active');
       selectedChoice = this.dataset.choice;
-      playSound(500, 0.1);
 
       // Активируем кнопку спина когда выбрана ставка
       document.getElementById('spinButton').disabled = false;
@@ -639,11 +587,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // Modal close
   document.getElementById('modalButton').addEventListener('click', function() {
     document.getElementById('modal').classList.remove('show');
-
-    // Reset center hub
-    const centerHub = document.getElementById('centerHub');
-    centerHub.querySelector('.status-text').textContent = 'Удача';
-    centerHub.querySelector('.main-text').textContent = 'СТАРТ!';
   });
 
   // Close modal by clicking outside
@@ -652,14 +595,6 @@ document.addEventListener('DOMContentLoaded', function() {
       this.classList.remove('show');
     }
   });
-
-  // Initialize sound slider state
-  const soundSlider = document.getElementById('soundSlider');
-  if (gameState.soundEnabled) {
-    soundSlider.classList.add('active');
-  } else {
-    soundSlider.classList.remove('active');
-  }
 
   // Initialize profile data
   updateProfileStats();
