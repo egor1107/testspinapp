@@ -1,8 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root{
-  /* Dark gradient theme */
-  --bg-primary: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #2d1b69 100%);
+  /* Dark theme with new background */
+  --bg-primary: #1d232a;
   --bg-secondary: rgba(30, 30, 60, 0.95);
   --panel: rgba(20, 20, 40, 0.95);
   --panel-border: rgba(100, 100, 150, 0.3);
@@ -138,47 +138,6 @@ html, body{
   margin: 0;
 }
 
-/* Уменьшенный ползунок звука */
-.sound-toggle {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 1;
-}
-
-.sound-slider {
-  position: relative;
-  width: 40px; /* Уменьшен с 60px до 40px */
-  height: 20px; /* Уменьшен с 30px до 20px */
-  background: var(--glass);
-  border-radius: 10px; /* Уменьшен с 15px до 10px */
-  border: 1px solid var(--glass-border);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.sound-slider::before {
-  content: '';
-  position: absolute;
-  width: 18px; /* Уменьшен с 26px до 18px */
-  height: 18px; /* Уменьшен с 26px до 18px */
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-  top: 1px; /* Уменьшен с 2px до 1px */
-  left: 1px; /* Уменьшен с 2px до 1px */
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.sound-slider.active::before {
-  transform: translateX(20px); /* Уменьшен с 30px до 20px */
-  background: linear-gradient(135deg, var(--accent-success), #34d399);
-}
-
-.sound-slider.active {
-  background: rgba(16, 185, 129, 0.2);
-}
-
 /* Main content с увеличенным верхним отступом для адаптации под TMA */
 .main-content {
   flex: 1;
@@ -275,17 +234,17 @@ canvas#wheel{
   50% { transform: translateX(-50%) scale(1.15); filter: drop-shadow(0 6px 20px rgba(239, 68, 68, 0.6)); }
 }
 
-/* Enhanced center hub */
+/* Enhanced center hub - изменен цвет на фон */
 .center-hub{
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 250px; /* Увеличен с 130px до 140px */
-  height: 250px; /* Увеличен с 130px до 140px */
+  width: 250px;
+  height: 250px;
   border-radius: 50%;
-  background: white;
-  border: 2px solid #f0f0f0;
+  background: #1d232a; /* Изменен цвет фона */
+  border: 2px solid #1d232a; /* Изменен цвет границы */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -300,21 +259,13 @@ canvas#wheel{
   box-shadow: var(--shadow-strong);
 }
 
+/* Убираем текст в центре */
 .center-hub .status-text{
-  font-size: 11px;
-  color: #999;
-  margin-bottom: 2px;
-  font-weight: 500;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
+  display: none;
 }
 
 .center-hub .main-text{
-  font-size: 16px;
-  font-weight: 800;
-  color: #8b5cf6;
-  text-align: center;
-  line-height: 1.2;
+  display: none;
 }
 
 /* Enhanced particle system */
@@ -442,6 +393,7 @@ canvas#wheel{
   border-radius: 8px;
 }
 
+/* Обновленная кнопка спина */
 .spin-button{
   display: block;
   width: 100%;
@@ -458,7 +410,20 @@ canvas#wheel{
   position: relative;
   overflow: hidden;
   box-shadow: var(--shadow-soft);
-  margin-bottom: 12px; /* Уменьшен отступ для приближения к истории */
+  margin-bottom: 12px;
+}
+
+.button-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.button-star-icon {
+  height: 16px;
+  width: auto;
+  filter: sepia(1) saturate(5) hue-rotate(10deg);
 }
 
 .spin-button::before {
@@ -547,7 +512,7 @@ canvas#wheel{
   background: var(--glass);
 }
 
-/* Цвета кубиков для выигрышей */
+/* Цвета кубиков для выигрышей - обновлены для новых призов */
 .history-cube.win-secret-nft {
   background: linear-gradient(135deg, #ef4444, #f87171);
   border-color: #ef4444;
@@ -560,13 +525,13 @@ canvas#wheel{
   box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
 }
 
-.history-cube.win-stars {
+.history-cube.win-2x {
   background: linear-gradient(135deg, #06b6d4, #67e8f9);
   border-color: #06b6d4;
   box-shadow: 0 2px 8px rgba(6, 182, 212, 0.3);
 }
 
-.history-cube.win-gift {
+.history-cube.win-3x {
   background: linear-gradient(135deg, #f59e0b, #fbbf24);
   border-color: #f59e0b;
   box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
@@ -802,6 +767,17 @@ canvas#wheel{
   background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(248, 113, 113, 0.2));
   border-color: var(--accent-error);
   box-shadow: 0 8px 32px rgba(239, 68, 68, 0.3);
+}
+
+.modal-star-icon {
+  height: 20px !important;
+  width: auto !important;
+  display: inline-block !important;
+  filter: sepia(1) saturate(5) hue-rotate(10deg) !important;
+  vertical-align: middle !important;
+  margin-left: -10px !important;
+  margin-right: 0px !important;
+  padding: 0px !important;
 }
 
 .modal-message {
