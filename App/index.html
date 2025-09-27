@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lucky Wheel - Telegram Mini App</title>
+  <title>XFourtune - Telegram Mini App</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -20,7 +20,7 @@
           <!-- Header with balance -->
           <div class="app-header-inline">
             <div class="header-content">
-              <h1 class="app-title">Lucky Wheel</h1>
+              <h1 class="app-title">XFourtune</h1>
               <div class="balance-container" style="cursor:pointer;" onclick="showBalanceModal()">
                 <span class="balance-text">1,000 <img src="images\Star Fill.svg" alt="звезды" class="star-icon"></span>
               </div>
@@ -28,11 +28,6 @@
           </div>
           
           <div class="panel">
-            <!-- Sound toggle slider -->
-            <div class="sound-toggle">
-              <div class="sound-slider active" id="soundSlider" onclick="toggleSound()"></div>
-            </div>
-            
             <!-- Wheel Container -->
             <div class="wheel-container" id="wheelContainer">
               <div class="progress-ring" id="progressRing"></div>
@@ -40,8 +35,6 @@
               <canvas id="wheel" width="540" height="540"></canvas>
               <div class="particles" id="particles"></div>
               <div class="center-hub" id="centerHub">
-                <div class="status-text">Удача</div>
-                <div class="main-text">СТАРТ!</div>
               </div>
             </div>
 
@@ -56,16 +49,21 @@
                   <div class="prize-name">NFT Random</div>
                   <div class="prize-chance">10.4%</div>
                 </div>
-                <div class="bet-option" data-choice="Звёзды" style="background: linear-gradient(135deg, #06b6d4, #67e8f9);">
-                  <div class="prize-name">Stars</div>
+                <div class="bet-option" data-choice="2x" style="background: linear-gradient(135deg, #06b6d4, #67e8f9);">
+                  <div class="prize-name">2x</div>
                   <div class="prize-chance">62.5%</div>
                 </div>
-                <div class="bet-option" data-choice="Подарок" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">
-                  <div class="prize-name">Gift</div>
+                <div class="bet-option" data-choice="3x" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">
+                  <div class="prize-name">3x</div>
                   <div class="prize-chance">25%</div>
                 </div>
               </div>
-              <button id="spinButton" class="spin-button" disabled>Крутить колесо</button>
+              <button id="spinButton" class="spin-button" disabled>
+                <span class="button-content">
+                  <span>Spin for 125</span>
+                  <img src="images\Star Fill.svg" alt="звезды" class="button-star-icon">
+                </span>
+              </button>
               
               <!-- История спинов -->
               <div class="spin-history-container">
@@ -83,7 +81,7 @@
           <!-- Header with balance -->
           <div class="app-header-inline">
             <div class="header-content">
-              <h1 class="app-title">Lucky Wheel</h1>
+              <h1 class="app-title">XFourtune</h1>
               <div class="balance-container" style="cursor:pointer;" onclick="showBalanceModal()">
                 <span class="balance-text">1,000 <img src="images\Star Fill.svg" alt="звезды" class="star-icon"></span>
               </div>
@@ -107,7 +105,7 @@
           <!-- Header with balance -->
           <div class="app-header-inline">
             <div class="header-content">
-              <h1 class="app-title">Lucky Wheel</h1>
+              <h1 class="app-title">XFourtune</h1>
               <div class="balance-container" style="cursor:pointer;" onclick="showBalanceModal()">
                 <span class="balance-text">1,000 <img src="images\Star Fill.svg" alt="звезды" class="star-icon"></span>
               </div>
