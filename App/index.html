@@ -22,7 +22,7 @@
             <div class="header-content">
               <h1 class="app-title">XFourtune</h1>
               <div class="balance-container" style="cursor:pointer;" onclick="showBalanceModal()">
-                <span class="balance-text">1,000 <img src="images\Star Fill.svg" alt="звезды" class="star-icon"></span>
+                <span class="balance-text" id="balanceText">1,000 <img src="images\Star Fill.svg" alt="звезды" class="star-icon"></span>
               </div>
             </div>
           </div>
@@ -59,10 +59,7 @@
                 </div>
               </div>
               <button id="spinButton" class="spin-button" disabled>
-                <span class="button-content">
-                  <span>Spin for 125</span>
-                  <img src="images\Star Fill.svg" alt="звезды" class="button-star-icon">
-                </span>
+                Spin for 125 <img src="images\Star Fill.svg" alt="звезды" class="star-icon-button">
               </button>
               
               <!-- История спинов -->
@@ -83,7 +80,7 @@
             <div class="header-content">
               <h1 class="app-title">XFourtune</h1>
               <div class="balance-container" style="cursor:pointer;" onclick="showBalanceModal()">
-                <span class="balance-text">1,000 <img src="images\Star Fill.svg" alt="звезды" class="star-icon"></span>
+                <span class="balance-text" id="balanceTextShop">1,000 <img src="images\Star Fill.svg" alt="звезды" class="star-icon"></span>
               </div>
             </div>
           </div>
@@ -107,7 +104,7 @@
             <div class="header-content">
               <h1 class="app-title">XFourtune</h1>
               <div class="balance-container" style="cursor:pointer;" onclick="showBalanceModal()">
-                <span class="balance-text">1,000 <img src="images\Star Fill.svg" alt="звезды" class="star-icon"></span>
+                <span class="balance-text" id="balanceTextProfile">1,000 <img src="images\Star Fill.svg" alt="звезды" class="star-icon"></span>
               </div>
             </div>
           </div>
@@ -170,6 +167,20 @@
       <button class="modal-button" id="modalButton">Продолжить</button>
     </div>
   </div>
+
+  <!-- Inventory Item Modal -->
+  <div class="modal" id="inventoryModal">
+    <div class="modal-content">
+      <div class="modal-title" id="inventoryModalTitle">Награда</div>
+      <div class="modal-result" id="inventoryModalResult">💰</div>
+      <div class="modal-message" id="inventoryModalMessage">Что вы хотите сделать с этой наградой?</div>
+      <div class="modal-buttons">
+        <button class="modal-button secondary" id="withdrawButton" disabled>Вывести</button>
+        <button class="modal-button primary" id="claimButton">Забрать</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Confetti container -->
   <div class="confetti" id="confetti"></div>
 
