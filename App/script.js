@@ -19,6 +19,14 @@ function getRandomNFTGif() {
   return NFT_GIFS[Math.floor(Math.random() * NFT_GIFS.length)];
 }
 
+// Функция для получения названия подарка из пути к файлу
+function getGiftNameFromPath(gifPath) {
+  // Извлекаем название файла без расширения из пути
+  const fileName = gifPath.split('/').pop(); // Получаем последнюю часть пути
+  const nameWithoutExtension = fileName.replace('.gif', ''); // Убираем расширение
+  return nameWithoutExtension;
+}
+
 // Configuration - CHANGED: Звёзды -> 2x, Подарок -> 3x
 const WHEEL_CONFIG = [
   {label: "2x", count: 30, color: '#06b6d4'},
@@ -165,7 +173,7 @@ function cleanInventory() {
   }
 }
 
-// UPDATED: Display inventory as separate cards
+// UPDATED: Display inventory as separate cards - MODIFIED to add claim buttons for stars
 function updateInventoryDisplay() {
   const inventoryGrid = document.getElementById('inventoryGrid');
   if (!inventoryGrid) return;
@@ -185,43 +193,39 @@ function updateInventoryDisplay() {
   // Display individual reward cards
   let inventoryHTML = '';
   gameState.inventory.forEach((item) => {
-    const clickableClass = (item.type === '2x' || item.type === '3x') ? 'clickable' : '';
     
     if (item.type === '2x' || item.type === '3x') {
-      // For 2x/3x items, show only stars amount in large font with standard card structure
+      // For 2x/3x items, show star icon with claim button
       inventoryHTML += `
-        <div class="reward-card ${clickableClass}" data-item-id="${item.id}" onclick="${clickableClass ? `openInventoryModal('${item.id}')` : ''}">
+        <div class="reward-card">
           <div class="reward-rarity rarity-${item.rarity}"></div>
-          <div class="reward-stars-large">${item.amount} ⭐</div>
+          <div class="reward-stars-large">${item.amount} <img src="images/Star Fill.svg" alt="звезды" class="star-icon"></div>
+          <button class="claim-btn" onclick="openInventoryModal('${item.id}')">Забрать</button>
+        </div>
+      `;
+    } else if ((item.type === 'NFT' || item.type === 'Secret NFT') && item.gifUrl) {
+      // For NFT items with gif URL, show the gif and gift name
+      const giftName = getGiftNameFromPath(item.gifUrl);
+      inventoryHTML += `
+        <div class="reward-card">
+          <div class="reward-rarity rarity-${item.rarity}"></div>
+          <div class="reward-gif-container">
+            <img src="${item.gifUrl}" alt="${giftName}" class="reward-gif" />
+          </div>
+          <div class="reward-name">${giftName}</div>
         </div>
       `;
     } else {
-      // For other items, show normal layout
+      // For other items, show normal layout with emoji
       const amountDisplay = item.amount > 0 ? `${item.amount} ⭐` : item.type;
-      
-      if ((item.type === 'NFT' || item.type === 'Secret NFT') && item.gifUrl) {
-        // For NFT items with gif URL, show the gif instead of emoji
-        inventoryHTML += `
-          <div class="reward-card ${clickableClass}" data-item-id="${item.id}" onclick="${clickableClass ? `openInventoryModal('${item.id}')` : ''}">
-            <div class="reward-rarity rarity-${item.rarity}"></div>
-            <div class="reward-gif-container">
-              <img src="${item.gifUrl}" alt="${item.type}" class="reward-gif" />
-            </div>
-            <div class="reward-name">${item.type}</div>
-            <div class="reward-amount">${amountDisplay}</div>
-          </div>
-        `;
-      } else {
-        // For other items, show normal layout with emoji
-        inventoryHTML += `
-          <div class="reward-card ${clickableClass}" data-item-id="${item.id}" onclick="${clickableClass ? `openInventoryModal('${item.id}')` : ''}">
-            <div class="reward-rarity rarity-${item.rarity}"></div>
-            <div class="reward-image">${item.emoji}</div>
-            <div class="reward-name">${item.type}</div>
-            <div class="reward-amount">${amountDisplay}</div>
-          </div>
-        `;
-      }
+      inventoryHTML += `
+        <div class="reward-card">
+          <div class="reward-rarity rarity-${item.rarity}"></div>
+          <div class="reward-image">${item.emoji}</div>
+          <div class="reward-name">${item.type}</div>
+          <div class="reward-amount">${amountDisplay}</div>
+        </div>
+      `;
     }
   });
 
@@ -245,8 +249,7 @@ function openInventoryModal(itemId) {
   result.innerHTML = `
     <div class="inventory-modal-reward">
       <div class="reward-display">
-        <span class="reward-emoji">${item.emoji}</span>
-        <span class="reward-amount">${item.amount} ⭐</span>
+        <span class="reward-amount">${item.amount} <img src="images/Star Fill.svg" alt="звезды" class="star-icon"></span>
       </div>
     </div>
   `;
