@@ -1,9 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root{
-  /* Dark theme with new background */
+  /* Dark theme with #1d232a background */
   --bg-primary: #1d232a;
-  --bg-secondary: rgba(30, 30, 60, 0.95);
+  --bg-secondary: rgba(29, 35, 42, 0.95);
   --panel: rgba(20, 20, 40, 0.95);
   --panel-border: rgba(100, 100, 150, 0.3);
   --text-primary: #ffffff;
@@ -84,7 +84,7 @@ html, body{
 /* Инлайн заголовок с увеличенным отступом сверху для TMA */
 .app-header-inline {
   position: relative;
-  padding: 20px 0 10px; /* Увеличен верхний отступ с 0px до 20px для TMA */
+  padding: 20px 0 10px;
   margin-bottom: 0px;
 }
 
@@ -141,9 +141,9 @@ html, body{
 /* Main content с увеличенным верхним отступом для адаптации под TMA */
 .main-content {
   flex: 1;
-  padding: 60px 16px 20px; /* Вернули обычный нижний отступ */
+  padding: 60px 16px 20px;
   display: flex;
-  align-items: flex-start; /* Изменено с center на flex-start для лучшего размещения */
+  align-items: flex-start;
   justify-content: center;
 }
 
@@ -190,9 +190,9 @@ html, body{
 .wheel-container {
   position: relative;
   width: 100%;
-  max-width: 420px; /* Уменьшен с 480px до 420px для более компактного размещения */
+  max-width: 420px;
   aspect-ratio: 1;
-  margin: 0 auto 20px; /* Уменьшен нижний отступ с 40px до 20px для приближения к кнопкам */
+  margin: 0 auto 20px;
   padding: 20px;
 }
 
@@ -234,7 +234,7 @@ canvas#wheel{
   50% { transform: translateX(-50%) scale(1.15); filter: drop-shadow(0 6px 20px rgba(239, 68, 68, 0.6)); }
 }
 
-/* Enhanced center hub - изменен цвет на фон */
+/* Enhanced center hub - CHANGED to background color #1d232a and removed text */
 .center-hub{
   position: absolute;
   left: 50%;
@@ -243,8 +243,8 @@ canvas#wheel{
   width: 250px;
   height: 250px;
   border-radius: 50%;
-  background: #1d232a; /* Изменен цвет фона */
-  border: 2px solid #1d232a; /* Изменен цвет границы */
+  background: #1d232a;
+  border: 2px solid #1d232a;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -259,7 +259,7 @@ canvas#wheel{
   box-shadow: var(--shadow-strong);
 }
 
-/* Убираем текст в центре */
+/* Hide text in center hub */
 .center-hub .status-text{
   display: none;
 }
@@ -289,7 +289,7 @@ canvas#wheel{
 
 /* Controls section - уменьшен отступ сверху */
 .controls{
-  margin-top: 20px; /* Уменьшен отступ с 60px до 20px чтобы подвинуть кнопки ближе к колесу */
+  margin-top: 20px;
 }
 
 .bet-grid{
@@ -393,9 +393,11 @@ canvas#wheel{
   border-radius: 8px;
 }
 
-/* Обновленная кнопка спина */
 .spin-button{
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
   padding: 20px;
   border-radius: 24px;
@@ -413,17 +415,11 @@ canvas#wheel{
   margin-bottom: 12px;
 }
 
-.button-content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.button-star-icon {
-  height: 16px;
+.spin-button .star-icon-button {
+  height: 1.2em;
   width: auto;
   filter: sepia(1) saturate(5) hue-rotate(10deg);
+  vertical-align: middle;
 }
 
 .spin-button::before {
@@ -467,29 +463,29 @@ canvas#wheel{
   backdrop-filter: blur(15px);
   border: 1px solid var(--glass-border);
   border-radius: 16px;
-  padding: 8px 12px; /* Уменьшен вертикальный padding */
-  margin-bottom: 20px; /* Обычный отступ до нижней панели */
+  padding: 8px 12px;
+  margin-bottom: 20px;
   max-width: 100%;
 }
 
 .spin-history-title {
-  display: none; /* Скрываем заголовок */
+  display: none;
 }
 
 .spin-history {
   display: flex;
-  gap: 8px; /* Увеличен gap между кубиками */
+  gap: 8px;
   overflow-x: auto;
-  padding: 6px 0; /* Увеличен вертикальный padding */
+  padding: 6px 0;
   scroll-behavior: smooth;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   max-width: 100%;
   box-sizing: border-box;
 }
 
 .spin-history::-webkit-scrollbar {
-  display: none; /* Chrome, Safari and Opera */
+  display: none;
 }
 
 .history-placeholder {
@@ -502,9 +498,9 @@ canvas#wheel{
 }
 
 .history-cube {
-  width: 32px; /* Увеличен с 24px до 32px */
-  height: 32px; /* Увеличен с 24px до 32px */
-  border-radius: 8px; /* Увеличен с 6px до 8px */
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   flex-shrink: 0;
   position: relative;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -512,7 +508,7 @@ canvas#wheel{
   background: var(--glass);
 }
 
-/* Цвета кубиков для выигрышей - обновлены для новых призов */
+/* Цвета кубиков для выигрышей - CHANGED 2x and 3x */
 .history-cube.win-secret-nft {
   background: linear-gradient(135deg, #ef4444, #f87171);
   border-color: #ef4444;
@@ -613,7 +609,7 @@ canvas#wheel{
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(15, 15, 35, 0.95);
+  background: rgba(29, 35, 42, 0.95);
   backdrop-filter: blur(20px);
   border-top: 1px solid var(--panel-border);
   padding: 12px 16px 16px;
@@ -747,6 +743,8 @@ canvas#wheel{
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .modal-result img {
@@ -769,15 +767,79 @@ canvas#wheel{
   box-shadow: 0 8px 32px rgba(239, 68, 68, 0.3);
 }
 
-.modal-star-icon {
-  height: 20px !important;
-  width: auto !important;
-  display: inline-block !important;
-  filter: sepia(1) saturate(5) hue-rotate(10deg) !important;
-  vertical-align: middle !important;
-  margin-left: -10px !important;
-  margin-right: 0px !important;
-  padding: 0px !important;
+/* Win reward display in modal */
+.win-reward-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.win-reward-display img {
+  height: 1.2em;
+  width: auto;
+  vertical-align: middle;
+}
+
+.win-reward-display .arrow-icon {
+  filter: brightness(0) invert(1);
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.win-reward-display .star-icon {
+  filter: sepia(1) saturate(5) hue-rotate(10deg);
+}
+
+/* Inventory modal reward display */
+.inventory-modal-reward {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+}
+
+.reward-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.reward-emoji {
+  font-size: 2em;
+}
+
+.reward-amount {
+  color: var(--accent-warning);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Claim success display */
+.claim-success-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent-success);
+}
+
+.success-amount {
+  font-size: 1.2em;
+}
+
+.success-star {
+  height: 1.2em;
+  width: auto;
+  filter: sepia(1) saturate(5) hue-rotate(10deg);
 }
 
 .modal-message {
@@ -800,11 +862,36 @@ canvas#wheel{
   font-size: 14px;
   transition: all 0.3s ease;
   box-shadow: var(--shadow-soft);
+  min-width: 120px;
 }
 
 .modal-button:hover {
   transform: translateY(-1px);
   box-shadow: var(--shadow-medium);
+}
+
+/* Modal buttons container */
+.modal-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  justify-content: center;
+}
+
+.modal-button.secondary {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.modal-button.secondary:hover {
+  transform: none;
+  box-shadow: var(--shadow-soft);
+}
+
+.modal-button.primary {
+  background: linear-gradient(135deg, var(--accent-success), #34d399);
 }
 
 /* Progress indicator */
@@ -837,6 +924,7 @@ canvas#wheel{
     transform: scale(1.02);
   }
 }
+
 /* Profile specific styles */
 .profile-stats {
   display: grid;
@@ -940,6 +1028,17 @@ canvas#wheel{
   backdrop-filter: blur(15px);
   position: relative;
   overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.reward-card.clickable {
+  cursor: pointer;
+}
+
+.reward-card.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+  border-color: var(--accent-primary);
 }
 
 .reward-rarity {
@@ -960,11 +1059,39 @@ canvas#wheel{
   margin-bottom: 8px;
 }
 
+.reward-gif-container {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.reward-gif {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
 .reward-name {
   font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 4px;
+}
+
+.reward-amount {
+  font-size: 11px;
+  color: var(--accent-warning);
+  background: rgba(245, 158, 11, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  font-weight: 600;
 }
 
 .reward-count {
@@ -974,6 +1101,16 @@ canvas#wheel{
   padding: 2px 6px;
   border-radius: 4px;
   display: inline-block;
+}
+
+/* Large stars display for 2x/3x rewards */
+.reward-stars-large {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent-warning);
+  text-align: center;
+  line-height: 1.2;
+  margin: 24px 0;
 }
 
 /* Confetti animations */
