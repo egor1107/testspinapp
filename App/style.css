@@ -821,6 +821,23 @@ canvas#wheel{
   gap: 4px;
 }
 
+/* Large stars display in inventory modal */
+.inventory-modal-reward .reward-amount {
+  font-size: 40px;
+  font-weight: 900;
+  color: var(--accent-warning);
+}
+
+.inventory-modal-reward .reward-amount img {
+  height: 1.2em;
+  width: auto;
+  filter: sepia(1) saturate(5) hue-rotate(10deg);
+  vertical-align: middle;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 /* Claim success display */
 .claim-success-display {
   display: flex;
@@ -989,6 +1006,7 @@ canvas#wheel{
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 12px;
+  justify-items: center;
 }
 
 .empty-inventory {
@@ -1029,6 +1047,12 @@ canvas#wheel{
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
+  width: 120px;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .reward-card.clickable {
@@ -1068,6 +1092,7 @@ canvas#wheel{
   justify-content: center;
   overflow: hidden;
   border-radius: 8px;
+  margin: 0 auto 8px auto;
 }
 
 .reward-gif {
@@ -1103,14 +1128,46 @@ canvas#wheel{
   display: inline-block;
 }
 
-/* Large stars display for 2x/3x rewards */
+/* Large stars display for 2x/3x rewards - MODIFIED: Use star icon instead of emoji */
 .reward-stars-large {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--accent-warning);
   text-align: center;
   line-height: 1.2;
   margin: 24px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.reward-stars-large img {
+  height: 1em;
+  width: auto;
+  filter: sepia(1) saturate(5) hue-rotate(10deg);
+  vertical-align: middle;
+}
+
+/* Claim button for star rewards */
+.claim-btn {
+  background: linear-gradient(135deg, var(--accent-success), #34d399);
+  border: 0;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  padding: 6px 12px;
+  transition: all 0.3s ease;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.claim-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 /* Confetti animations */
