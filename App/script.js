@@ -1,17 +1,17 @@
 // GIF файлы для показа при выигрыше/проигрыше NFT
 const NFT_GIFS = [
-  'gifts/AllGiftsTGG_by_TgEmodziBot_AgADkWwAAvtM6Eg.gif',
-  'gifts/AllGiftsTGG_by_TgEmodziBot_AgAD5X0AAoxVeUs.gif',
-  'gifts/AllGiftsTGG_by_TgEmodziBot_AgADrIIAAg8v6Ug.gif',
-  'gifts/AllGiftsTGG_by_TgEmodziBot_AgADXWYAAmpx8Ug.gif',
-  'gifts/AllGiftsTGG_by_TgEmodziBot_AgADcHkAAhj26Eg.gif',
-  'gifts/AllGiftsTGG_by_TgEmodziBot_AgAD02oAAjiF6Eg.gif',
-  'gifts/AllGiftsTGG_by_TgEmodziBot_AgADrIIAAg8v6Ug.gif',
-  'gifts/AllGiftsTGG_by_TgEmodziBot_AgAD3HIAAoc76Ug.gif',
-  'gifts/AllGiftsTGG_by_TgEmodziBot_AgAD23YAAhKX6Ug.gif',
-  'gifts/AllGiftsTGG_by_TgEmodziBot_AgADj3IAAqQ26Ug.gif',
-  'gifts/AllGiftsTGG_by_TgEmodziBot_AgADZ30AAuFC6Ug.gif',
-  'gifts/AllGiftsTGG_by_TgEmodziBot_AgADjHMAAjND6Eg.gif'
+  'gifts/B-Day Candle.gif',
+  'gifts/Evil Eye.gif',
+  'gifts/Handing Star.gif',
+  'gifts/Jelly Bunny.gif',
+  'gifts/Jester Hat.gif',
+  'gifts/Jolly Chimp.gif',
+  'gifts/Lol Pop.gif',
+  'gifts/Pet Snake.gif',
+  'gifts/Santa Hat.gif',
+  'gifts/Snoop Cigar.gif',
+  'gifts/Star Notepad.gif',
+  'gifts/Toy Bear.gif'
 ];
 
 // Функция для получения случайной gif
@@ -19,7 +19,7 @@ function getRandomNFTGif() {
   return NFT_GIFS[Math.floor(Math.random() * NFT_GIFS.length)];
 }
 
-// Configuration - обновлено для новых призов
+// Configuration - CHANGED: Звёзды -> 2x, Подарок -> 3x
 const WHEEL_CONFIG = [
   {label: "2x", count: 30, color: '#06b6d4'},
   {label: "3x", count: 12, color: '#f59e0b'},
@@ -27,14 +27,15 @@ const WHEEL_CONFIG = [
   {label: "Secret NFT", count: 1, color: '#ef4444'}
 ];
 
-// Game state
+// Game state - UPDATED: Changed inventory structure and added balance
 let gameState = {
   spins: parseInt(localStorage.getItem('wheelSpins') || '0'),
   wins: parseInt(localStorage.getItem('wheelWins') || '0'),
   winStreak: parseInt(localStorage.getItem('winStreak') || '0'),
   currentStreak: parseInt(localStorage.getItem('currentStreak') || '0'),
   lastDaily: localStorage.getItem('lastDaily') || '0',
-  inventory: JSON.parse(localStorage.getItem('wheelInventory') || '{}'),
+  balance: parseInt(localStorage.getItem('gameBalance') || '1000'),
+  inventory: JSON.parse(localStorage.getItem('wheelInventory') || '[]'), // Changed to array
   currentSection: 'wheel'
 };
 
@@ -44,7 +45,9 @@ let spinHistory = [];
 // Initialize background particles
 function initBackgroundParticles() {
   const container = document.getElementById('bgParticles');
-  const particleCount = 0;
+  if (!container) return;
+  
+  const particleCount = 20;
 
   for (let i = 0; i < particleCount; i++) {
     const particle = document.createElement('div');
@@ -56,29 +59,119 @@ function initBackgroundParticles() {
   }
 }
 
-// Reward system - обновлено для новых призов
+// Reward system - UPDATED: 2x and 3x instead of stars and gift
 const rewardConfig = {
   'Secret NFT': { emoji: '💎', rarity: 'legendary' },
   'NFT': { emoji: '🎨', rarity: 'epic' },
-  '2x': { emoji: '⭐', rarity: 'common' },
-  '3x': { emoji: '🎁', rarity: 'rare' }
+  '2x': { emoji: '2x', rarity: 'common', reward: 250 },
+  '3x': { emoji: '3x', rarity: 'rare', reward: 375 }
 };
 
-function addRewardToInventory(rewardName) {
-  if (!gameState.inventory[rewardName]) {
-    gameState.inventory[rewardName] = 0;
+// Function to generate unique ID for inventory items
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+// UPDATED: Add reward to inventory as separate items
+function addRewardToInventory(rewardName, gifUrl = null) {
+  // Проверяем, существует ли конфигурация для данной награды
+  if (!rewardConfig[rewardName]) {
+    console.warn(`Попытка добавить неизвестную награду: "${rewardName}"`);
+    return;
   }
-  gameState.inventory[rewardName]++;
+  
+  const reward = rewardConfig[rewardName];
+  const newItem = {
+    id: generateId(),
+    type: rewardName,
+    amount: reward.reward || 0,
+    timestamp: Date.now(),
+    emoji: reward.emoji,
+    rarity: reward.rarity,
+    gifUrl: gifUrl // Store gif URL for NFT items
+  };
+  
+  gameState.inventory.push(newItem);
   localStorage.setItem('wheelInventory', JSON.stringify(gameState.inventory));
   updateInventoryDisplay();
 }
 
+// Function to remove item from inventory
+function removeFromInventory(itemId) {
+  gameState.inventory = gameState.inventory.filter(item => item.id !== itemId);
+  localStorage.setItem('wheelInventory', JSON.stringify(gameState.inventory));
+  updateInventoryDisplay();
+}
+
+// Function to update balance
+function updateBalance(amount) {
+  gameState.balance += amount;
+  localStorage.setItem('gameBalance', gameState.balance);
+  updateBalanceDisplay();
+}
+
+// Function to update balance display
+function updateBalanceDisplay() {
+  const balanceElements = ['balanceText', 'balanceTextShop', 'balanceTextProfile'];
+  balanceElements.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.innerHTML = `${gameState.balance.toLocaleString()} <img src="images\\Star Fill.svg" alt="звезды" class="star-icon">`;
+    }
+  });
+}
+
+// Функция для очистки инвентаря от неизвестных наград
+function cleanInventory() {
+  // If inventory is still in old format (object), convert to new format (array)
+  if (!Array.isArray(gameState.inventory)) {
+    console.log('Converting old inventory format to new format');
+    const oldInventory = gameState.inventory;
+    gameState.inventory = [];
+    
+    // Convert old format to new format
+    Object.entries(oldInventory).forEach(([rewardName, count]) => {
+      if (rewardConfig[rewardName]) {
+        for (let i = 0; i < count; i++) {
+          const reward = rewardConfig[rewardName];
+          const newItem = {
+            id: generateId(),
+            type: rewardName,
+            amount: reward.reward || 0,
+            timestamp: Date.now() - (i * 1000), // Slightly different timestamps
+            emoji: reward.emoji,
+            rarity: reward.rarity
+          };
+          gameState.inventory.push(newItem);
+        }
+      }
+    });
+    localStorage.setItem('wheelInventory', JSON.stringify(gameState.inventory));
+  }
+  
+  // Clean unknown rewards
+  const originalLength = gameState.inventory.length;
+  gameState.inventory = gameState.inventory.filter(item => {
+    if (!rewardConfig[item.type]) {
+      console.warn(`Удаляем неизвестную награду из инвентаря: "${item.type}"`);
+      return false;
+    }
+    return true;
+  });
+  
+  if (gameState.inventory.length !== originalLength) {
+    localStorage.setItem('wheelInventory', JSON.stringify(gameState.inventory));
+    console.log('Инвентарь очищен от неизвестных наград');
+  }
+}
+
+// UPDATED: Display inventory as separate cards
 function updateInventoryDisplay() {
   const inventoryGrid = document.getElementById('inventoryGrid');
+  if (!inventoryGrid) return;
 
   // Check if inventory is empty
-  if (Object.keys(gameState.inventory).length === 0 ||
-      Object.values(gameState.inventory).every(count => count === 0)) {
+  if (gameState.inventory.length === 0) {
     inventoryGrid.innerHTML = `
       <div class="empty-inventory">
         <div class="empty-icon">📦</div>
@@ -89,30 +182,130 @@ function updateInventoryDisplay() {
     return;
   }
 
-  // Display rewards
+  // Display individual reward cards
   let inventoryHTML = '';
-  Object.entries(gameState.inventory).forEach(([rewardName, count]) => {
-    if (count > 0) {
-      const reward = rewardConfig[rewardName];
+  gameState.inventory.forEach((item) => {
+    const clickableClass = (item.type === '2x' || item.type === '3x') ? 'clickable' : '';
+    
+    if (item.type === '2x' || item.type === '3x') {
+      // For 2x/3x items, show only stars amount in large font with standard card structure
       inventoryHTML += `
-        <div class="reward-card">
-          <div class="reward-rarity rarity-${reward.rarity}"></div>
-          <div class="reward-image">${reward.emoji}</div>
-          <div class="reward-name">${rewardName}</div>
-          <div class="reward-count">x${count}</div>
+        <div class="reward-card ${clickableClass}" data-item-id="${item.id}" onclick="${clickableClass ? `openInventoryModal('${item.id}')` : ''}">
+          <div class="reward-rarity rarity-${item.rarity}"></div>
+          <div class="reward-stars-large">${item.amount} ⭐</div>
         </div>
       `;
+    } else {
+      // For other items, show normal layout
+      const amountDisplay = item.amount > 0 ? `${item.amount} ⭐` : item.type;
+      
+      if ((item.type === 'NFT' || item.type === 'Secret NFT') && item.gifUrl) {
+        // For NFT items with gif URL, show the gif instead of emoji
+        inventoryHTML += `
+          <div class="reward-card ${clickableClass}" data-item-id="${item.id}" onclick="${clickableClass ? `openInventoryModal('${item.id}')` : ''}">
+            <div class="reward-rarity rarity-${item.rarity}"></div>
+            <div class="reward-gif-container">
+              <img src="${item.gifUrl}" alt="${item.type}" class="reward-gif" />
+            </div>
+            <div class="reward-name">${item.type}</div>
+            <div class="reward-amount">${amountDisplay}</div>
+          </div>
+        `;
+      } else {
+        // For other items, show normal layout with emoji
+        inventoryHTML += `
+          <div class="reward-card ${clickableClass}" data-item-id="${item.id}" onclick="${clickableClass ? `openInventoryModal('${item.id}')` : ''}">
+            <div class="reward-rarity rarity-${item.rarity}"></div>
+            <div class="reward-image">${item.emoji}</div>
+            <div class="reward-name">${item.type}</div>
+            <div class="reward-amount">${amountDisplay}</div>
+          </div>
+        `;
+      }
     }
   });
 
   inventoryGrid.innerHTML = inventoryHTML;
 }
 
-function updateProfileStats() {
-  document.getElementById('profileSpins').textContent = gameState.spins;
+// Function to open inventory modal
+function openInventoryModal(itemId) {
+  const item = gameState.inventory.find(i => i.id === itemId);
+  if (!item) return;
+  
+  const modal = document.getElementById('inventoryModal');
+  const title = document.getElementById('inventoryModalTitle');
+  const result = document.getElementById('inventoryModalResult');
+  const message = document.getElementById('inventoryModalMessage');
+  const claimButton = document.getElementById('claimButton');
+  
+  if (!modal || !title || !result || !message || !claimButton) return;
+  
+  title.textContent = 'Награда';
+  result.innerHTML = `
+    <div class="inventory-modal-reward">
+      <div class="reward-display">
+        <span class="reward-emoji">${item.emoji}</span>
+        <span class="reward-amount">${item.amount} ⭐</span>
+      </div>
+    </div>
+  `;
+  message.textContent = 'Что вы хотите сделать с этой наградой?';
+  
+  // Set up claim button click handler
+  claimButton.onclick = () => {
+    claimReward(itemId);
+    modal.classList.remove('show');
+  };
+  
+  modal.classList.add('show');
 }
 
-// Функция для добавления результата в историю спинов - обновлено для новых призов
+// Function to claim reward (add to balance and remove from inventory)
+function claimReward(itemId) {
+  const item = gameState.inventory.find(i => i.id === itemId);
+  if (!item) return;
+  
+  // Add to balance
+  updateBalance(item.amount);
+  
+  // Remove from inventory
+  removeFromInventory(itemId);
+  
+  // Show success message
+  showClaimSuccessModal(item.amount);
+}
+
+// Function to show claim success modal
+function showClaimSuccessModal(amount) {
+  const modal = document.getElementById('modal');
+  const title = document.getElementById('modalTitle');
+  const result = document.getElementById('modalResult');
+  const message = document.getElementById('modalMessage');
+  
+  if (!modal || !title || !result || !message) return;
+  
+  title.textContent = 'Успешно!';
+  result.innerHTML = `
+    <div class="claim-success-display">
+      <span class="success-amount">+${amount}</span>
+      <img src="images\\Star Fill.svg" alt="звезды" class="success-star">
+    </div>
+  `;
+  result.className = 'modal-result win';
+  message.textContent = `${amount} звезд добавлено на ваш игровой баланс!`;
+  
+  modal.classList.add('show');
+}
+
+function updateProfileStats() {
+  const profileSpinsEl = document.getElementById('profileSpins');
+  if (profileSpinsEl) {
+    profileSpinsEl.textContent = gameState.spins;
+  }
+}
+
+// Функция для добавления результата в историю спинов
 function addToSpinHistory(prize, isWin) {
   spinHistory.unshift({ prize, isWin }); // Добавляем в начало массива
 
@@ -124,9 +317,10 @@ function addToSpinHistory(prize, isWin) {
   updateSpinHistoryDisplay();
 }
 
-// Функция для обновления отображения истории спинов - обновлено для новых призов
+// Функция для обновления отображения истории спинов - UPDATED: 2x and 3x classes
 function updateSpinHistoryDisplay() {
   const historyContainer = document.getElementById('spinHistory');
+  if (!historyContainer) return;
 
   if (spinHistory.length === 0) {
     historyContainer.innerHTML = '<div class="history-placeholder">Начните крутить колесо!</div>';
@@ -166,8 +360,6 @@ function updateSpinHistoryDisplay() {
   });
 
   historyContainer.innerHTML = historyHTML;
-
-  // Прокрутка не нужна, так как новые кубики добавляются в начало
 }
 
 // Section navigation
@@ -177,8 +369,11 @@ function showSection(section) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
   // Show selected section
-  document.getElementById(section + 'Section').classList.add('active');
-  document.querySelector(`[onclick="showSection('${section}')"]`).classList.add('active');
+  const sectionEl = document.getElementById(section + 'Section');
+  const navEl = document.querySelector(`[onclick="showSection('${section}')"]`);
+  
+  if (sectionEl) sectionEl.classList.add('active');
+  if (navEl) navEl.classList.add('active');
 
   gameState.currentSection = section;
 
@@ -196,6 +391,8 @@ function showBalanceModal() {
   const result = document.getElementById('modalResult');
   const message = document.getElementById('modalMessage');
 
+  if (!modal || !title || !result || !message) return;
+
   title.textContent = 'Пополнение баланса';
   result.textContent = '💳';
   result.className = 'modal-result';
@@ -206,11 +403,15 @@ function showBalanceModal() {
 
 // Original wheel system
 const canvas = document.getElementById('wheel');
-const ctx = canvas.getContext('2d');
-const centerX = canvas.width / 2;
-const centerY = canvas.height / 2;
-const radius = Math.min(centerX, centerY) - 8;
-const centerHoleRadius = 70; // Увеличен радиус центра с 65 до 70
+if (!canvas) {
+  console.error('Canvas element not found!');
+}
+
+const ctx = canvas ? canvas.getContext('2d') : null;
+const centerX = canvas ? canvas.width / 2 : 0;
+const centerY = canvas ? canvas.height / 2 : 0;
+const radius = canvas ? Math.min(centerX, centerY) - 8 : 0;
+const centerHoleRadius = 70;
 
 // Create sectors from config
 const sectors = [];
@@ -240,6 +441,8 @@ let selectedChoice = null;
 let isSpinning = false;
 
 function drawWheel(rotationAngle = 0) {
+  if (!ctx) return;
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // Draw outer shadow
@@ -279,35 +482,37 @@ function drawWheel(rotationAngle = 0) {
     ctx.stroke();
   }
 
-  // Draw center hole with new color - изменен цвет на фоновый
-  const centerGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, centerHoleRadius);
-  centerGradient.addColorStop(0, '#1d232a');
-  centerGradient.addColorStop(1, '#1d232a');
-
+  // Draw center hole with background color #1d232a
   ctx.beginPath();
-  ctx.fillStyle = centerGradient;
+  ctx.fillStyle = '#1d232a';
   ctx.arc(centerX, centerY, centerHoleRadius, 0, Math.PI * 2);
   ctx.fill();
 
-  // Center hole border - изменен цвет границы
+  // Center hole border
   ctx.beginPath();
   ctx.arc(centerX, centerY, centerHoleRadius, 0, Math.PI * 2);
   ctx.lineWidth = 2;
-  ctx.strokeStyle = '#1d232a';
+  ctx.strokeStyle = 'rgba(29, 35, 42, 0.3)';
   ctx.stroke();
 }
 
 function spinWheel() {
   if (isSpinning) return;
 
-  // Проверяем, выбрана ли ставка
+  // Check if bet is selected
   if (!selectedChoice) {
     const modal = document.getElementById('modal');
-    document.getElementById('modalTitle').textContent = 'Ошибка';
-    document.getElementById('modalResult').textContent = '⚠️';
-    document.getElementById('modalResult').className = 'modal-result';
-    document.getElementById('modalMessage').textContent = 'Сначала выберите ставку!';
-    modal.classList.add('show');
+    const title = document.getElementById('modalTitle');
+    const result = document.getElementById('modalResult');
+    const message = document.getElementById('modalMessage');
+    
+    if (modal && title && result && message) {
+      title.textContent = 'Ошибка';
+      result.textContent = '⚠️';
+      result.className = 'modal-result';
+      message.textContent = 'Сначала выберите ставку!';
+      modal.classList.add('show');
+    }
     return;
   }
 
@@ -317,19 +522,19 @@ function spinWheel() {
   const wheelContainer = document.getElementById('wheelContainer');
   const centerHub = document.getElementById('centerHub');
   const progressRing = document.getElementById('progressRing');
-  const pointer = document.getElementById('pointer');
 
   // Update UI
-  spinButton.disabled = true;
-  spinButton.classList.add('spinning');
-  spinButton.querySelector('.button-content span').textContent = 'Spinning';
-  spinButton.querySelector('.button-star-icon').style.display = 'none'; // Скрываем иконку звездочки
-  wheelContainer.classList.add('spinning');
-  centerHub.classList.add('spinning');
+  if (spinButton) {
+    spinButton.disabled = true;
+    spinButton.classList.add('spinning');
+    spinButton.innerHTML = 'Spinning...';
+  }
+  if (wheelContainer) wheelContainer.classList.add('spinning');
+  if (centerHub) centerHub.classList.add('spinning');
   document.querySelectorAll('.bet-option').forEach(opt => opt.classList.add('disabled'));
 
   // Show progress ring
-  progressRing.classList.add('active');
+  if (progressRing) progressRing.classList.add('active');
 
   // Calculate spin
   const minSpins = 5;
@@ -371,13 +576,12 @@ function finishSpin() {
   const adjustedAngle = (pointerPosition - normalizedRotation + 360) % 360;
   const sectorAngle = 360 / sectors.length;
   const sectorIndex = Math.floor(adjustedAngle / sectorAngle) % sectors.length;
-  const result = sectors[sectorIndex].label;
+  const finalResult = sectors[sectorIndex].label; // Renamed to avoid scope issues
 
-  console.log('Debug - Rotation:', normalizedRotation, 'Adjusted:', adjustedAngle, 'Sector:', sectorIndex, 'Result:', result);
-  const isWin = result === selectedChoice;
+  const isWin = finalResult === selectedChoice;
 
   // Добавляем результат в историю спинов
-  addToSpinHistory(result, isWin);
+  addToSpinHistory(finalResult, isWin);
 
   // Update game state
   gameState.spins++;
@@ -388,7 +592,13 @@ function finishSpin() {
       gameState.winStreak = gameState.currentStreak;
     }
     // Add reward to inventory
-    addRewardToInventory(result);
+    if (finalResult === 'NFT' || finalResult === 'Secret NFT') {
+      // Generate GIF URL for NFT rewards
+      const nftGifUrl = getRandomNFTGif();
+      addRewardToInventory(finalResult, nftGifUrl);
+    } else {
+      addRewardToInventory(finalResult);
+    }
   } else {
     gameState.currentStreak = 0;
   }
@@ -401,12 +611,14 @@ function finishSpin() {
 
   // Visual effects
   const pointer = document.getElementById('pointer');
-  pointer.classList.add('pulse');
-  setTimeout(() => pointer.classList.remove('pulse'), 800);
+  if (pointer) {
+    pointer.classList.add('pulse');
+    setTimeout(() => pointer.classList.remove('pulse'), 800);
+  }
 
   if (isWin) {
     createParticles();
-    if (result === 'Secret NFT') {
+    if (finalResult === 'Secret NFT') {
       createConfetti();
     }
   }
@@ -419,40 +631,58 @@ function finishSpin() {
     const progressRing = document.getElementById('progressRing');
 
     isSpinning = false;
-    spinButton.disabled = false;
-    spinButton.classList.remove('spinning');
-    spinButton.querySelector('.button-content span').textContent = 'Spin for 125';
-    spinButton.querySelector('.button-star-icon').style.display = 'inline-block'; // Показываем иконку звездочки обратно
-    wheelContainer.classList.remove('spinning');
-    centerHub.classList.remove('spinning');
+    if (spinButton) {
+      spinButton.disabled = false;
+      spinButton.classList.remove('spinning');
+      // UPDATED: Changed the text to reflect the new bet system (no star costs for now)
+      spinButton.innerHTML = 'Spin'; 
+    }
+    if (wheelContainer) wheelContainer.classList.remove('spinning');
+    if (centerHub) centerHub.classList.remove('spinning');
     document.querySelectorAll('.bet-option').forEach(opt => opt.classList.remove('disabled'));
-    progressRing.classList.remove('active');
+    if (progressRing) progressRing.classList.remove('active');
 
-    showResult({label: result}, isWin);
+    // ВАЖНО: Показать результат
+    showResult({label: finalResult}, isWin);
   }, 1000);
 }
 
-// Обновленная функция показа результатов с новой логикой наград
 function showResult(result, isWin) {
   const modal = document.getElementById('modal');
   const title = document.getElementById('modalTitle');
   const modalResult = document.getElementById('modalResult');
   const message = document.getElementById('modalMessage');
 
+  if (!modal || !title || !modalResult || !message) {
+    console.error('Modal elements not found!');
+    return;
+  }
+
   title.textContent = 'Результат спина';
   modalResult.className = `modal-result ${isWin ? 'win' : 'lose'}`;
 
-  // ИЗМЕНЕНО: Показываем гифки только для NFT, но НЕ для Secret NFT
-  if (result.label === 'NFT') {
-    // Очищаем содержимое и добавляем gif только для обычного NFT
+  // Handle display based on prize type
+  if (result.label === 'NFT' || result.label === 'Secret NFT') {
+    // Show gif for NFT
     modalResult.innerHTML = '';
 
     const gifContainer = document.createElement('div');
     gifContainer.style.textAlign = 'center';
     gifContainer.style.width = '100%';
 
+    let nftGifUrl;
+    if (isWin) {
+      // Get GIF URL from the most recently added NFT in inventory
+      const nftItems = gameState.inventory.filter(item => item.type === result.label);
+      const latestNft = nftItems[nftItems.length - 1];
+      nftGifUrl = latestNft ? latestNft.gifUrl : getRandomNFTGif();
+    } else {
+      // For losses, generate a random GIF
+      nftGifUrl = getRandomNFTGif();
+    }
+
     const gifImage = document.createElement('img');
-    gifImage.src = getRandomNFTGif();
+    gifImage.src = nftGifUrl;
     gifImage.style.maxWidth = '200px';
     gifImage.style.maxHeight = '200px';
     gifImage.style.borderRadius = '12px';
@@ -462,13 +692,13 @@ function showResult(result, isWin) {
     modalResult.appendChild(gifContainer);
 
     if (isWin) {
-      message.textContent = '🎉 Вы угадали NFT! Отличная интуиция!';
+      message.textContent = result.label === 'Secret NFT' ? '🎉 Вы угадали Secret NFT! Невероятная удача!' : '🎉 Вы угадали NFT! Отличная интуиция!';
     } else {
       const loseContainer = document.createElement('div');
       loseContainer.style.textAlign = 'center';
 
       const loseText = document.createElement('div');
-      loseText.textContent = 'возможный NFT:';
+      loseText.textContent = result.label === 'Secret NFT' ? 'возможный Secret NFT:' : 'возможный NFT:';
       loseText.style.marginBottom = '8px';
       loseText.style.fontSize = '14px';
       loseText.style.color = '#b4b4d6';
@@ -481,29 +711,47 @@ function showResult(result, isWin) {
 
       message.textContent = 'В следующий раз обязательно повезёт!';
     }
+  } else if ((result.label === '2x' || result.label === '3x') && isWin) {
+    // NEW: Show 2x/3x win with arrow and reward amount
+    modalResult.innerHTML = '';
+    
+    const winDisplay = document.createElement('div');
+    winDisplay.className = 'win-reward-display';
+    
+    // Prize text (2x or 3x)
+    const prizeText = document.createElement('span');
+    prizeText.textContent = result.label;
+    winDisplay.appendChild(prizeText);
+    
+    // Arrow icon
+    const arrowIcon = document.createElement('img');
+    arrowIcon.src = 'images/radix-icons_arrow-right.svg';
+    arrowIcon.className = 'arrow-icon';
+    arrowIcon.alt = 'arrow';
+    winDisplay.appendChild(arrowIcon);
+    
+    // Reward amount
+    const rewardAmount = document.createElement('span');
+    rewardAmount.textContent = rewardConfig[result.label].reward;
+    winDisplay.appendChild(rewardAmount);
+    
+    // Star icon
+    const starIcon = document.createElement('img');
+    starIcon.src = 'images/Star Fill.svg';
+    starIcon.className = 'star-icon';
+    starIcon.alt = 'звезды';
+    winDisplay.appendChild(starIcon);
+    
+    modalResult.appendChild(winDisplay);
+    message.textContent = '🎉 Вы угадали! Отличная интуиция!';
   } else {
-    // ИЗМЕНЕНО: Для Secret NFT, 2x и 3x показываем обычное текстовое отображение
-    if (result.label === '2x') {
-      modalResult.innerHTML = '<span style="margin-right: 0px;">2x → 250</span><img src="images/Star Fill.svg" alt="звезды" style="height: 20px; width: auto; display: inline-block; filter: sepia(1) saturate(5) hue-rotate(10deg); vertical-align: middle; margin-left: 3px; margin-right: 0px; padding: 0px;">';
-      if (isWin) {
-        message.textContent = '🎉 Вы угадали! Получаете 250 звезд!';
-      } else {
-        message.textContent = 'В следующий раз обязательно повезёт!';
-      }
-    } else if (result.label === '3x') {
-      modalResult.innerHTML = '<span style="margin-right: 0px;">3x → 375</span><img src="images/Star Fill.svg" alt="звезды" style="height: 20px; width: auto; display: inline-block; filter: sepia(1) saturate(5) hue-rotate(10deg); vertical-align: middle; margin-left: 3px; margin-right: 0px; padding: 0px;">';
-      if (isWin) {
-        message.textContent = '🎉 Вы угадали! Получаете 375 звезд!';
-      } else {
-        message.textContent = 'В следующий раз обязательно повезёт!';
-      }
+    // For all other cases (Secret NFT, losses)
+    modalResult.textContent = result.label;
+
+    if (isWin) {
+      message.textContent = '🎉 Вы угадали! Отличная интуиция!';
     } else {
-      modalResult.textContent = result.label;
-      if (isWin) {
-        message.textContent = '🎉 Вы угадали! Отличная интуиция!';
-      } else {
-        message.textContent = 'В следующий раз обязательно повезёт!';
-      }
+      message.textContent = 'В следующий раз обязательно повезёт!';
     }
   }
 
@@ -512,6 +760,8 @@ function showResult(result, isWin) {
 
 function createParticles() {
   const container = document.getElementById('particles');
+  if (!container) return;
+  
   const colors = ['#a855f7', '#ec4899', '#10b981', '#f59e0b', '#06b6d4'];
 
   for (let i = 0; i < 20; i++) {
@@ -539,6 +789,8 @@ function createParticles() {
 
 function createConfetti() {
   const container = document.getElementById('confetti');
+  if (!container) return;
+  
   const colors = ['#a855f7', '#ec4899', '#10b981', '#f59e0b', '#06b6d4', '#ef4444'];
 
   for (let i = 0; i < 50; i++) {
@@ -562,6 +814,12 @@ function createConfetti() {
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', function() {
+  // Clean inventory from unknown rewards on page load
+  cleanInventory();
+  
+  // Initialize balance display
+  updateBalanceDisplay();
+  
   // Initialize wheel
   drawWheel();
   initBackgroundParticles();
@@ -576,25 +834,50 @@ document.addEventListener('DOMContentLoaded', function() {
       this.classList.add('active');
       selectedChoice = this.dataset.choice;
 
-      // Активируем кнопку спина когда выбрана ставка
-      document.getElementById('spinButton').disabled = false;
+      // Enable spin button when bet is selected
+      const spinButton = document.getElementById('spinButton');
+      if (spinButton) {
+        spinButton.disabled = false;
+      }
     });
   });
 
   // Spin button
-  document.getElementById('spinButton').addEventListener('click', spinWheel);
+  const spinButton = document.getElementById('spinButton');
+  if (spinButton) {
+    spinButton.addEventListener('click', spinWheel);
+  }
 
   // Modal close
-  document.getElementById('modalButton').addEventListener('click', function() {
-    document.getElementById('modal').classList.remove('show');
-  });
+  const modalButton = document.getElementById('modalButton');
+  if (modalButton) {
+    modalButton.addEventListener('click', function() {
+      const modal = document.getElementById('modal');
+      if (modal) {
+        modal.classList.remove('show');
+      }
+    });
+  }
 
   // Close modal by clicking outside
-  document.getElementById('modal').addEventListener('click', function(e) {
-    if (e.target === this) {
-      this.classList.remove('show');
-    }
-  });
+  const modal = document.getElementById('modal');
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === this) {
+        this.classList.remove('show');
+      }
+    });
+  }
+
+  // Inventory modal close
+  const inventoryModal = document.getElementById('inventoryModal');
+  if (inventoryModal) {
+    inventoryModal.addEventListener('click', function(e) {
+      if (e.target === this) {
+        this.classList.remove('show');
+      }
+    });
+  }
 
   // Initialize profile data
   updateProfileStats();
