@@ -35,18 +35,19 @@ const WHEEL_CONFIG = [
   {label: "Secret NFT", count: 1, color: '#ef4444'}
 ];
 
-// API Configuration
-const API_BASE_URL = 'https://tgame-manager.preview.emergentagent.com/api';
+// Game state - UPDATED: Changed inventory structure and added balance
+let gameState = {
+  spins: parseInt(localStorage.getItem('wheelSpins') || '0'),
+  wins: parseInt(localStorage.getItem('wheelWins') || '0'),
+  winStreak: parseInt(localStorage.getItem('winStreak') || '0'),
+  currentStreak: parseInt(localStorage.getItem('currentStreak') || '0'),
+  lastDaily: localStorage.getItem('lastDaily') || '0',
+  balance: parseInt(localStorage.getItem('gameBalance') || '1000'),
+  inventory: JSON.parse(localStorage.getItem('wheelInventory') || '[]'), // Changed to array
+  currentSection: 'wheel'
+};
 
-// Initialize Telegram WebApp
-let tg = window.Telegram?.WebApp;
-if (tg) {
-  tg.ready();
-  tg.expand();
-}
-
-// User data
-let currentUser = null;
+// История спинов (только в текущей сессии, не сохраняется в localStorage)
 let spinHistory = [];
 
 // Initialize background particles
@@ -66,136 +67,119 @@ function initBackgroundParticles() {
   }
 }
 
-// API Functions
-async function apiCall(endpoint, method = 'GET', data = null) {
-  try {
-    const options = {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    };
-    
-    if (data) {
-      options.body = JSON.stringify(data);
-    }
-    
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-    
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
-    console.error('API call failed:', error);
-    throw error;
-  }
+// Reward system - UPDATED: 2x and 3x instead of stars and gift
+const rewardConfig = {
+  'Secret NFT': { emoji: '💎', rarity: 'legendary' },
+  'NFT': { emoji: '🎨', rarity: 'epic' },
+  '2x': { emoji: '2x', rarity: 'common', reward: 250 },
+  '3x': { emoji: '3x', rarity: 'rare', reward: 375 }
+};
+
+// Function to generate unique ID for inventory items
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
-// Get user data from Telegram
-function getTelegramUser() {
-  if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-    const user = tg.initDataUnsafe.user;
-    return {
-      telegram_id: String(user.id),
-      username: user.username || null,
-      first_name: user.first_name || null,
-      last_name: user.last_name || null
-    };
+// UPDATED: Add reward to inventory as separate items
+function addRewardToInventory(rewardName, gifUrl = null) {
+  // Проверяем, существует ли конфигурация для данной награды
+  if (!rewardConfig[rewardName]) {
+    console.warn(`Попытка добавить неизвестную награду: "${rewardName}"`);
+    return;
   }
   
-  // Fallback for testing
-  return {
-    telegram_id: 'test_' + Math.random().toString(36).substr(2, 9),
-    username: 'testuser',
-    first_name: 'Test',
-    last_name: 'User'
+  const reward = rewardConfig[rewardName];
+  const newItem = {
+    id: generateId(),
+    type: rewardName,
+    amount: reward.reward || 0,
+    timestamp: Date.now(),
+    emoji: reward.emoji,
+    rarity: reward.rarity,
+    gifUrl: gifUrl // Store gif URL for NFT items
   };
-}
-
-// Initialize or get user
-async function initializeUser() {
-  try {
-    showLoadingModal(true);
-    
-    const telegramUser = getTelegramUser();
-    console.log('Telegram user:', telegramUser);
-    
-    // Try to get existing user or create new one
-    try {
-      currentUser = await apiCall(`/users/${telegramUser.telegram_id}`);
-    } catch (error) {
-      if (error.message.includes('404')) {
-        // Create new user
-        currentUser = await apiCall('/users', 'POST', telegramUser);
-      } else {
-        throw error;
-      }
-    }
-    
-    console.log('Current user:', currentUser);
-    updateBalanceDisplay();
-    updateProfileStats();
-    updateInventoryDisplay();
-    
-    // Load spin history
-    await loadSpinHistory();
-    
-    showLoadingModal(false);
-    return true;
-  } catch (error) {
-    console.error('Failed to initialize user:', error);
-    showError('Не удалось подключиться к серверу. Проверьте интернет-соединение.');
-    showLoadingModal(false);
-    return false;
-  }
-}
-
-// Load spin history
-async function loadSpinHistory() {
-  try {
-    const history = await apiCall(`/spin-history/${currentUser.telegram_id}?limit=20`);
-    spinHistory = history.map(spin => ({
-      prize: spin.result,
-      isWin: spin.is_win
-    }));
-    updateSpinHistoryDisplay();
-  } catch (error) {
-    console.error('Failed to load spin history:', error);
-  }
-}
-
-// Update balance display
-function updateBalanceDisplay() {
-  if (!currentUser) return;
   
+  gameState.inventory.push(newItem);
+  localStorage.setItem('wheelInventory', JSON.stringify(gameState.inventory));
+  updateInventoryDisplay();
+}
+
+// Function to remove item from inventory
+function removeFromInventory(itemId) {
+  gameState.inventory = gameState.inventory.filter(item => item.id !== itemId);
+  localStorage.setItem('wheelInventory', JSON.stringify(gameState.inventory));
+  updateInventoryDisplay();
+}
+
+// Function to update balance
+function updateBalance(amount) {
+  gameState.balance += amount;
+  localStorage.setItem('gameBalance', gameState.balance);
+  updateBalanceDisplay();
+}
+
+// Function to update balance display
+function updateBalanceDisplay() {
   const balanceElements = ['balanceText', 'balanceTextShop', 'balanceTextProfile'];
   balanceElements.forEach(id => {
     const element = document.getElementById(id);
     if (element) {
-      element.innerHTML = `${currentUser.balance.toLocaleString()} <img src="images\\Star Fill.svg" alt="звезды" class="star-icon">`;
+      element.innerHTML = `${gameState.balance.toLocaleString()} <img src="images\\Star Fill.svg" alt="звезды" class="star-icon">`;
     }
   });
 }
 
-// Update profile stats
-function updateProfileStats() {
-  if (!currentUser) return;
+// Функция для очистки инвентаря от неизвестных наград
+function cleanInventory() {
+  // If inventory is still in old format (object), convert to new format (array)
+  if (!Array.isArray(gameState.inventory)) {
+    console.log('Converting old inventory format to new format');
+    const oldInventory = gameState.inventory;
+    gameState.inventory = [];
+    
+    // Convert old format to new format
+    Object.entries(oldInventory).forEach(([rewardName, count]) => {
+      if (rewardConfig[rewardName]) {
+        for (let i = 0; i < count; i++) {
+          const reward = rewardConfig[rewardName];
+          const newItem = {
+            id: generateId(),
+            type: rewardName,
+            amount: reward.reward || 0,
+            timestamp: Date.now() - (i * 1000), // Slightly different timestamps
+            emoji: reward.emoji,
+            rarity: reward.rarity
+          };
+          gameState.inventory.push(newItem);
+        }
+      }
+    });
+    localStorage.setItem('wheelInventory', JSON.stringify(gameState.inventory));
+  }
   
-  const profileSpinsEl = document.getElementById('profileSpins');
-  if (profileSpinsEl) {
-    profileSpinsEl.textContent = currentUser.total_spins;
+  // Clean unknown rewards
+  const originalLength = gameState.inventory.length;
+  gameState.inventory = gameState.inventory.filter(item => {
+    if (!rewardConfig[item.type]) {
+      console.warn(`Удаляем неизвестную награду из инвентаря: "${item.type}"`);
+      return false;
+    }
+    return true;
+  });
+  
+  if (gameState.inventory.length !== originalLength) {
+    localStorage.setItem('wheelInventory', JSON.stringify(gameState.inventory));
+    console.log('Инвентарь очищен от неизвестных наград');
   }
 }
 
-// Update inventory display
+// UPDATED: Display inventory as separate cards - MODIFIED to add claim buttons for stars
 function updateInventoryDisplay() {
   const inventoryGrid = document.getElementById('inventoryGrid');
-  if (!inventoryGrid || !currentUser) return;
+  if (!inventoryGrid) return;
 
   // Check if inventory is empty
-  if (!currentUser.inventory || currentUser.inventory.length === 0) {
+  if (gameState.inventory.length === 0) {
     inventoryGrid.innerHTML = `
       <div class="empty-inventory">
         <div class="empty-icon">📦</div>
@@ -208,7 +192,8 @@ function updateInventoryDisplay() {
 
   // Display individual reward cards
   let inventoryHTML = '';
-  currentUser.inventory.forEach((item) => {
+  gameState.inventory.forEach((item) => {
+    
     if (item.type === '2x' || item.type === '3x') {
       // For 2x/3x items, show star icon with claim button
       inventoryHTML += `
@@ -218,14 +203,14 @@ function updateInventoryDisplay() {
           <button class="claim-btn" onclick="openInventoryModal('${item.id}')">Забрать</button>
         </div>
       `;
-    } else if ((item.type === 'NFT' || item.type === 'Secret NFT') && item.gif_url) {
+    } else if ((item.type === 'NFT' || item.type === 'Secret NFT') && item.gifUrl) {
       // For NFT items with gif URL, show the gif and gift name
-      const giftName = getGiftNameFromPath(item.gif_url);
+      const giftName = getGiftNameFromPath(item.gifUrl);
       inventoryHTML += `
         <div class="reward-card">
           <div class="reward-rarity rarity-${item.rarity}"></div>
           <div class="reward-gif-container">
-            <img src="${item.gif_url}" alt="${giftName}" class="reward-gif" />
+            <img src="${item.gifUrl}" alt="${giftName}" class="reward-gif" />
           </div>
           <div class="reward-name">${giftName}</div>
         </div>
@@ -247,16 +232,9 @@ function updateInventoryDisplay() {
   inventoryGrid.innerHTML = inventoryHTML;
 }
 
-// Get gift name from path
-function getGiftNameFromPath(gifPath) {
-  const fileName = gifPath.split('/').pop();
-  const nameWithoutExtension = fileName.replace('.gif', '');
-  return nameWithoutExtension;
-}
-
 // Function to open inventory modal
 function openInventoryModal(itemId) {
-  const item = currentUser.inventory.find(i => i.id === itemId);
+  const item = gameState.inventory.find(i => i.id === itemId);
   if (!item) return;
   
   const modal = document.getElementById('inventoryModal');
@@ -286,31 +264,22 @@ function openInventoryModal(itemId) {
   modal.classList.add('show');
 }
 
-// Function to claim reward
-async function claimReward(itemId) {
-  try {
-    const response = await apiCall(`/claim-reward/${currentUser.telegram_id}?item_id=${itemId}`, 'POST');
-    
-    // Update user balance
-    currentUser.balance = response.new_balance;
-    
-    // Remove item from inventory
-    currentUser.inventory = currentUser.inventory.filter(item => item.id !== itemId);
-    
-    // Update displays
-    updateBalanceDisplay();
-    updateInventoryDisplay();
-    
-    // Show success message
-    showClaimSuccessModal(response.claimed_amount);
-    
-  } catch (error) {
-    console.error('Failed to claim reward:', error);
-    showError('Не удалось забрать награду');
-  }
+// Function to claim reward (add to balance and remove from inventory)
+function claimReward(itemId) {
+  const item = gameState.inventory.find(i => i.id === itemId);
+  if (!item) return;
+  
+  // Add to balance
+  updateBalance(item.amount);
+  
+  // Remove from inventory
+  removeFromInventory(itemId);
+  
+  // Show success message
+  showClaimSuccessModal(item.amount);
 }
 
-// Show claim success modal
+// Function to show claim success modal
 function showClaimSuccessModal(amount) {
   const modal = document.getElementById('modal');
   const title = document.getElementById('modalTitle');
@@ -332,7 +301,26 @@ function showClaimSuccessModal(amount) {
   modal.classList.add('show');
 }
 
-// Update spin history display
+function updateProfileStats() {
+  const profileSpinsEl = document.getElementById('profileSpins');
+  if (profileSpinsEl) {
+    profileSpinsEl.textContent = gameState.spins;
+  }
+}
+
+// Функция для добавления результата в историю спинов
+function addToSpinHistory(prize, isWin) {
+  spinHistory.unshift({ prize, isWin }); // Добавляем в начало массива
+
+  // Ограничиваем историю до 20 последних спинов
+  if (spinHistory.length > 20) {
+    spinHistory.pop(); // Удаляем с конца
+  }
+
+  updateSpinHistoryDisplay();
+}
+
+// Функция для обновления отображения истории спинов - UPDATED: 2x and 3x classes
 function updateSpinHistoryDisplay() {
   const historyContainer = document.getElementById('spinHistory');
   if (!historyContainer) return;
@@ -377,34 +365,6 @@ function updateSpinHistoryDisplay() {
   historyContainer.innerHTML = historyHTML;
 }
 
-// Show loading modal
-function showLoadingModal(show) {
-  const modal = document.getElementById('loadingModal');
-  if (modal) {
-    if (show) {
-      modal.classList.add('show');
-    } else {
-      modal.classList.remove('show');
-    }
-  }
-}
-
-// Show error message
-function showError(message) {
-  const modal = document.getElementById('modal');
-  const title = document.getElementById('modalTitle');
-  const result = document.getElementById('modalResult');
-  const modalMessage = document.getElementById('modalMessage');
-  
-  if (!modal || !title || !result || !modalMessage) return;
-  
-  title.textContent = 'Ошибка';
-  result.textContent = '⚠️';
-  result.className = 'modal-result';
-  modalMessage.textContent = message;
-  modal.classList.add('show');
-}
-
 // Section navigation
 function showSection(section) {
   // Hide all sections
@@ -417,6 +377,8 @@ function showSection(section) {
   
   if (sectionEl) sectionEl.classList.add('active');
   if (navEl) navEl.classList.add('active');
+
+  gameState.currentSection = section;
 
   // Update profile data when switching to profile
   if (section === 'profile') {
@@ -442,7 +404,7 @@ function showBalanceModal() {
   modal.classList.add('show');
 }
 
-// Wheel system
+// Original wheel system
 const canvas = document.getElementById('wheel');
 if (!canvas) {
   console.error('Canvas element not found!');
@@ -453,14 +415,6 @@ const centerX = canvas ? canvas.width / 2 : 0;
 const centerY = canvas ? canvas.height / 2 : 0;
 const radius = canvas ? Math.min(centerX, centerY) - 8 : 0;
 const centerHoleRadius = 70;
-
-// Wheel configuration
-const WHEEL_CONFIG = [
-  {label: "2x", count: 30, color: '#06b6d4'},
-  {label: "3x", count: 12, color: '#f59e0b'},
-  {label: "NFT", count: 5, color: '#8b5cf6'},
-  {label: "Secret NFT", count: 1, color: '#ef4444'}
-];
 
 // Create sectors from config
 const sectors = [];
@@ -545,115 +499,119 @@ function drawWheel(rotationAngle = 0) {
   ctx.stroke();
 }
 
-// Spin wheel function
-async function spinWheel() {
-  if (isSpinning || !currentUser) return;
+function spinWheel() {
+  if (isSpinning) return;
 
   // Check if bet is selected
   if (!selectedChoice) {
-    showError('Сначала выберите ставку!');
+    const modal = document.getElementById('modal');
+    const title = document.getElementById('modalTitle');
+    const result = document.getElementById('modalResult');
+    const message = document.getElementById('modalMessage');
+    
+    if (modal && title && result && message) {
+      title.textContent = 'Ошибка';
+      result.textContent = '⚠️';
+      result.className = 'modal-result';
+      message.textContent = 'Сначала выберите ставку!';
+      modal.classList.add('show');
+    }
     return;
   }
 
-  try {
-    isSpinning = true;
+  isSpinning = true;
 
-    const spinButton = document.getElementById('spinButton');
-    const wheelContainer = document.getElementById('wheelContainer');
-    const centerHub = document.getElementById('centerHub');
-    const progressRing = document.getElementById('progressRing');
+  const spinButton = document.getElementById('spinButton');
+  const wheelContainer = document.getElementById('wheelContainer');
+  const centerHub = document.getElementById('centerHub');
+  const progressRing = document.getElementById('progressRing');
 
-    // Update UI
-    if (spinButton) {
-      spinButton.disabled = true;
-      spinButton.classList.add('spinning');
-      spinButton.innerHTML = 'Spinning...';
-    }
-    if (wheelContainer) wheelContainer.classList.add('spinning');
-    if (centerHub) centerHub.classList.add('spinning');
-    document.querySelectorAll('.bet-option').forEach(opt => opt.classList.add('disabled'));
+  // Update UI
+  if (spinButton) {
+    spinButton.disabled = true;
+    spinButton.classList.add('spinning');
+    spinButton.innerHTML = 'Spinning...';
+  }
+  if (wheelContainer) wheelContainer.classList.add('spinning');
+  if (centerHub) centerHub.classList.add('spinning');
+  document.querySelectorAll('.bet-option').forEach(opt => opt.classList.add('disabled'));
 
-    // Show progress ring
-    if (progressRing) progressRing.classList.add('active');
+  // Show progress ring
+  if (progressRing) progressRing.classList.add('active');
 
-    // Make API call to spin
-    const spinResult = await apiCall('/spin', 'POST', {
-      telegram_id: currentUser.telegram_id,
-      bet_choice: selectedChoice,
-      username: currentUser.username,
-      first_name: currentUser.first_name,
-      last_name: currentUser.last_name
-    });
+  // Calculate spin
+  const minSpins = 5;
+  const maxSpins = 8;
+  const spins = Math.floor(Math.random() * (maxSpins - minSpins + 1)) + minSpins;
+  const finalAngle = Math.random() * 360;
+  const totalRotation = spins * 360 + finalAngle;
 
-    // Update current user data
-    currentUser.balance = spinResult.new_balance;
-    currentUser.total_spins = (currentUser.total_spins || 0) + 1;
-    if (spinResult.is_win) {
-      currentUser.total_wins = (currentUser.total_wins || 0) + 1;
-    }
-    
-    // Add inventory item if won
-    if (spinResult.inventory_item) {
-      if (!currentUser.inventory) currentUser.inventory = [];
-      currentUser.inventory.push(spinResult.inventory_item);
-    }
+  const startRotation = currentRotation;
+  const endRotation = startRotation + totalRotation;
+  const duration = 4000; // 4 seconds
+  const startTime = performance.now();
 
-    // Add to spin history
-    spinHistory.unshift({
-      prize: spinResult.result,
-      isWin: spinResult.is_win
-    });
-    if (spinHistory.length > 20) {
-      spinHistory.pop();
-    }
+  function animate(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
 
-    // Calculate spin animation
-    const minSpins = 5;
-    const maxSpins = 8;
-    const spins = Math.floor(Math.random() * (maxSpins - minSpins + 1)) + minSpins;
-    const finalAngle = Math.random() * 360;
-    const totalRotation = spins * 360 + finalAngle;
+    // Easing function for more natural spin
+    const easeOut = 1 - Math.pow(1 - progress, 3);
+    currentRotation = startRotation + (endRotation - startRotation) * easeOut;
 
-    const startRotation = currentRotation;
-    const endRotation = startRotation + totalRotation;
-    const duration = 4000; // 4 seconds
-    const startTime = performance.now();
+    drawWheel((currentRotation * Math.PI) / 180);
 
-    function animate(currentTime) {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-
-      // Easing function for more natural spin
-      const easeOut = 1 - Math.pow(1 - progress, 3);
-      currentRotation = startRotation + (endRotation - startRotation) * easeOut;
-
-      drawWheel((currentRotation * Math.PI) / 180);
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        finishSpin(spinResult);
-      }
-    }
-
-    requestAnimationFrame(animate);
-
-  } catch (error) {
-    console.error('Spin failed:', error);
-    showError('Ошибка при запуске спина. Попробуйте еще раз.');
-    
-    // Reset UI
-    isSpinning = false;
-    const spinButton = document.getElementById('spinButton');
-    if (spinButton) {
-      spinButton.disabled = false;
-      spinButton.classList.remove('spinning');
-      spinButton.innerHTML = 'Spin';
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      finishSpin();
     }
   }
+
+  requestAnimationFrame(animate);
 }
 
-function finishSpin(spinResult) {
+function finishSpin() {
+  // Calculate result - fix the math to properly determine winning sector
+  const normalizedRotation = ((currentRotation % 360) + 360) % 360;
+  // Pointer is at top (270 degrees in canvas coordinates), so we need to account for that
+  const pointerPosition = 270; // Top position in degrees
+  const adjustedAngle = (pointerPosition - normalizedRotation + 360) % 360;
+  const sectorAngle = 360 / sectors.length;
+  const sectorIndex = Math.floor(adjustedAngle / sectorAngle) % sectors.length;
+  const finalResult = sectors[sectorIndex].label; // Renamed to avoid scope issues
+
+  const isWin = finalResult === selectedChoice;
+
+  // Добавляем результат в историю спинов
+  addToSpinHistory(finalResult, isWin);
+
+  // Update game state
+  gameState.spins++;
+  if (isWin) {
+    gameState.wins++;
+    gameState.currentStreak++;
+    if (gameState.currentStreak > gameState.winStreak) {
+      gameState.winStreak = gameState.currentStreak;
+    }
+    // Add reward to inventory
+    if (finalResult === 'NFT' || finalResult === 'Secret NFT') {
+      // Generate GIF URL for NFT rewards
+      const nftGifUrl = getRandomNFTGif();
+      addRewardToInventory(finalResult, nftGifUrl);
+    } else {
+      addRewardToInventory(finalResult);
+    }
+  } else {
+    gameState.currentStreak = 0;
+  }
+
+  // Save stats
+  localStorage.setItem('wheelSpins', gameState.spins);
+  localStorage.setItem('wheelWins', gameState.wins);
+  localStorage.setItem('winStreak', gameState.winStreak);
+  localStorage.setItem('currentStreak', gameState.currentStreak);
+
   // Visual effects
   const pointer = document.getElementById('pointer');
   if (pointer) {
@@ -661,18 +619,12 @@ function finishSpin(spinResult) {
     setTimeout(() => pointer.classList.remove('pulse'), 800);
   }
 
-  if (spinResult.is_win) {
+  if (isWin) {
     createParticles();
-    if (spinResult.result === 'Secret NFT') {
+    if (finalResult === 'Secret NFT') {
       createConfetti();
     }
   }
-
-  // Update displays
-  updateBalanceDisplay();
-  updateProfileStats();
-  updateInventoryDisplay();
-  updateSpinHistoryDisplay();
 
   // Reset UI
   setTimeout(() => {
@@ -685,19 +637,20 @@ function finishSpin(spinResult) {
     if (spinButton) {
       spinButton.disabled = false;
       spinButton.classList.remove('spinning');
-      spinButton.innerHTML = 'Spin';
+      // UPDATED: Changed the text to reflect the new bet system (no star costs for now)
+      spinButton.innerHTML = 'Spin'; 
     }
     if (wheelContainer) wheelContainer.classList.remove('spinning');
     if (centerHub) centerHub.classList.remove('spinning');
     document.querySelectorAll('.bet-option').forEach(opt => opt.classList.remove('disabled'));
     if (progressRing) progressRing.classList.remove('active');
 
-    // Show result
-    showResult(spinResult);
+    // ВАЖНО: Показать результат
+    showResult({label: finalResult}, isWin);
   }, 1000);
 }
 
-function showResult(spinResult) {
+function showResult(result, isWin) {
   const modal = document.getElementById('modal');
   const title = document.getElementById('modalTitle');
   const modalResult = document.getElementById('modalResult');
@@ -709,10 +662,10 @@ function showResult(spinResult) {
   }
 
   title.textContent = 'Результат спина';
-  modalResult.className = `modal-result ${spinResult.is_win ? 'win' : 'lose'}`;
+  modalResult.className = `modal-result ${isWin ? 'win' : 'lose'}`;
 
   // Handle display based on prize type
-  if (spinResult.result === 'NFT' || spinResult.result === 'Secret NFT') {
+  if (result.label === 'NFT' || result.label === 'Secret NFT') {
     // Show gif for NFT
     modalResult.innerHTML = '';
 
@@ -720,25 +673,49 @@ function showResult(spinResult) {
     gifContainer.style.textAlign = 'center';
     gifContainer.style.width = '100%';
 
-    if (spinResult.gif_url) {
-      const gifImage = document.createElement('img');
-      gifImage.src = spinResult.gif_url;
-      gifImage.style.maxWidth = '200px';
-      gifImage.style.maxHeight = '200px';
-      gifImage.style.borderRadius = '12px';
-      gifImage.style.objectFit = 'contain';
-      gifContainer.appendChild(gifImage);
+    let nftGifUrl;
+    if (isWin) {
+      // Get GIF URL from the most recently added NFT in inventory
+      const nftItems = gameState.inventory.filter(item => item.type === result.label);
+      const latestNft = nftItems[nftItems.length - 1];
+      nftGifUrl = latestNft ? latestNft.gifUrl : getRandomNFTGif();
+    } else {
+      // For losses, generate a random GIF
+      nftGifUrl = getRandomNFTGif();
     }
 
+    const gifImage = document.createElement('img');
+    gifImage.src = nftGifUrl;
+    gifImage.style.maxWidth = '200px';
+    gifImage.style.maxHeight = '200px';
+    gifImage.style.borderRadius = '12px';
+    gifImage.style.objectFit = 'contain';
+
+    gifContainer.appendChild(gifImage);
     modalResult.appendChild(gifContainer);
 
-    if (spinResult.is_win) {
-      message.textContent = spinResult.result === 'Secret NFT' ? '🎉 Вы угадали Secret NFT! Невероятная удача!' : '🎉 Вы угадали NFT! Отличная интуиция!';
+    if (isWin) {
+      message.textContent = result.label === 'Secret NFT' ? '🎉 Вы угадали Secret NFT! Невероятная удача!' : '🎉 Вы угадали NFT! Отличная интуиция!';
     } else {
+      const loseContainer = document.createElement('div');
+      loseContainer.style.textAlign = 'center';
+
+      const loseText = document.createElement('div');
+      loseText.textContent = result.label === 'Secret NFT' ? 'возможный Secret NFT:' : 'возможный NFT:';
+      loseText.style.marginBottom = '8px';
+      loseText.style.fontSize = '14px';
+      loseText.style.color = '#b4b4d6';
+
+      loseContainer.appendChild(loseText);
+      loseContainer.appendChild(gifImage.cloneNode());
+
+      modalResult.innerHTML = '';
+      modalResult.appendChild(loseContainer);
+
       message.textContent = 'В следующий раз обязательно повезёт!';
     }
-  } else if ((spinResult.result === '2x' || spinResult.result === '3x') && spinResult.is_win) {
-    // Show 2x/3x win with arrow and reward amount
+  } else if ((result.label === '2x' || result.label === '3x') && isWin) {
+    // NEW: Show 2x/3x win with arrow and reward amount
     modalResult.innerHTML = '';
     
     const winDisplay = document.createElement('div');
@@ -746,7 +723,7 @@ function showResult(spinResult) {
     
     // Prize text (2x or 3x)
     const prizeText = document.createElement('span');
-    prizeText.textContent = spinResult.result;
+    prizeText.textContent = result.label;
     winDisplay.appendChild(prizeText);
     
     // Arrow icon
@@ -758,7 +735,7 @@ function showResult(spinResult) {
     
     // Reward amount
     const rewardAmount = document.createElement('span');
-    rewardAmount.textContent = spinResult.reward_amount;
+    rewardAmount.textContent = rewardConfig[result.label].reward;
     winDisplay.appendChild(rewardAmount);
     
     // Star icon
@@ -771,10 +748,10 @@ function showResult(spinResult) {
     modalResult.appendChild(winDisplay);
     message.textContent = '🎉 Вы угадали! Отличная интуиция!';
   } else {
-    // For all other cases
-    modalResult.textContent = spinResult.result;
+    // For all other cases (Secret NFT, losses)
+    modalResult.textContent = result.label;
 
-    if (spinResult.is_win) {
+    if (isWin) {
       message.textContent = '🎉 Вы угадали! Отличная интуиция!';
     } else {
       message.textContent = 'В следующий раз обязательно повезёт!';
@@ -839,19 +816,19 @@ function createConfetti() {
 }
 
 // Event listeners
-document.addEventListener('DOMContentLoaded', async function() {
-  // Initialize background particles
-  initBackgroundParticles();
+document.addEventListener('DOMContentLoaded', function() {
+  // Clean inventory from unknown rewards on page load
+  cleanInventory();
+  
+  // Initialize balance display
+  updateBalanceDisplay();
   
   // Initialize wheel
   drawWheel();
-  
-  // Initialize user and load data
-  const initialized = await initializeUser();
-  
-  if (!initialized) {
-    return; // Stop if initialization failed
-  }
+  initBackgroundParticles();
+
+  // Initialize spin history display
+  updateSpinHistoryDisplay();
 
   // Bet selection
   document.querySelectorAll('.bet-option').forEach(option => {
@@ -904,6 +881,10 @@ document.addEventListener('DOMContentLoaded', async function() {
       }
     });
   }
+
+  // Initialize profile data
+  updateProfileStats();
+  updateInventoryDisplay();
 });
 
 // Prevent page refresh on mobile pull-to-refresh
