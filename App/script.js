@@ -1,104 +1,3 @@
-// ==================== ИНТЕГРАЦИЯ С АДМИНСКОЙ ПАНЕЛЬЮ ====================
-
-// API Configuration - ИЗМЕНИТЕ baseUrl НА ВАШ СЕРВЕР
-const API_CONFIG = {
-  baseUrl: 'https://roulette-dashboard.preview.emergentagent.com/', // ИЗМЕНИТЕ НА ВАШ URL АДМИНКИ
-  telegramId: null,
-  username: null
-};
-
-// Функция инициализации Telegram WebApp
-function initTelegramWebApp() {
-  if (window.Telegram && window.Telegram.WebApp) {
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    
-    // Получаем данные пользователя
-    const user = tg.initDataUnsafe.user;
-    if (user) {
-      API_CONFIG.telegramId = user.id.toString();
-      API_CONFIG.username = user.username || user.first_name || null;
-      
-      console.log('Telegram User:', {
-        id: API_CONFIG.telegramId,
-        username: API_CONFIG.username
-      });
-    }
-  } else {
-    // Для тестирования без Telegram
-    API_CONFIG.telegramId = 'test_' + Math.random().toString(36).substr(2, 9);
-    API_CONFIG.username = 'TestUser';
-    console.log('Test mode - generated user:', API_CONFIG.telegramId);
-  }
-}
-
-// Функция синхронизации данных пользователя с сервером
-async function syncUserData() {
-  if (!API_CONFIG.telegramId) return;
-  
-  try {
-    const response = await fetch(`${API_CONFIG.baseUrl}/users/sync`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        telegram_id: API_CONFIG.telegramId,
-        username: API_CONFIG.username,
-        balance: gameState.balance,
-        spins: gameState.spins,
-        wins: gameState.wins,
-        winStreak: gameState.winStreak,
-        currentStreak: gameState.currentStreak,
-        inventory: gameState.inventory || []
-      }),
-    });
-
-    if (response.ok) {
-      console.log('Данные пользователя синхронизированы с сервером');
-    } else {
-      console.error('Ошибка синхронизации данных');
-    }
-  } catch (error) {
-    console.error('Ошибка API:', error);
-  }
-}
-
-// Функция отправки результата спина на сервер
-async function sendSpinResult(result, isWin) {
-  if (!API_CONFIG.telegramId) return;
-  
-  try {
-    const response = await fetch(`${API_CONFIG.baseUrl}/users/spin-result`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        telegram_id: API_CONFIG.telegramId,
-        result: result,
-        isWin: isWin,
-        balance: gameState.balance,
-        spins: gameState.spins,
-        wins: gameState.wins,
-        winStreak: gameState.winStreak,
-        currentStreak: gameState.currentStreak,
-        inventory: gameState.inventory || []
-      }),
-    });
-
-    if (response.ok) {
-      console.log('Результат спина отправлен на сервер');
-    } else {
-      console.error('Ошибка отправки результата спина');
-    }
-  } catch (error) {
-    console.error('Ошибка API:', error);
-  }
-}
-
-// ==================== ОРИГИНАЛЬНЫЙ КОД ИГРЫ ====================
-
 // GIF файлы для показа при выигрыше/проигрыше NFT
 const NFT_GIFS = [
   'gifts/B-Day Candle.gif',
@@ -672,7 +571,6 @@ function spinWheel() {
   requestAnimationFrame(animate);
 }
 
-// ==================== МОДИФИЦИРОВАННАЯ ФУНКЦИЯ finishSpin ====================
 function finishSpin() {
   // Calculate result - fix the math to properly determine winning sector
   const normalizedRotation = ((currentRotation % 360) + 360) % 360;
@@ -713,9 +611,6 @@ function finishSpin() {
   localStorage.setItem('wheelWins', gameState.wins);
   localStorage.setItem('winStreak', gameState.winStreak);
   localStorage.setItem('currentStreak', gameState.currentStreak);
-
-  // *** ДОБАВЛЕНО: ОТПРАВЛЯЕМ РЕЗУЛЬТАТ НА СЕРВЕР АДМИНКИ ***
-  sendSpinResult(finalResult, isWin);
 
   // Visual effects
   const pointer = document.getElementById('pointer');
@@ -920,19 +815,8 @@ function createConfetti() {
   }
 }
 
-// ==================== МОДИФИЦИРОВАННЫЙ Event Listener ====================
+// Event listeners
 document.addEventListener('DOMContentLoaded', function() {
-  // *** ДОБАВЛЕНО: ИНИЦИАЛИЗАЦИЯ TELEGRAM И СИНХРОНИЗАЦИЯ С СЕРВЕРОМ ***
-  // Инициализируем Telegram WebApp
-  initTelegramWebApp();
-  
-  // Синхронизируем данные с сервером (с небольшой задержкой)
-  setTimeout(() => {
-    syncUserData();
-  }, 1000);
-
-  // СУЩЕСТВУЮЩИЙ КОД ОСТАЕТСЯ БЕЗ ИЗМЕНЕНИЙ:
-  
   // Clean inventory from unknown rewards on page load
   cleanInventory();
   
@@ -1018,11 +902,3 @@ document.addEventListener('touchend', function(e) {
   }
   lastTouchEnd = now;
 });
-
-// ==================== ДОБАВЛЕНО: ПЕРИОДИЧЕСКАЯ СИНХРОНИЗАЦИЯ ====================
-// Периодическая синхронизация данных каждые 30 секунд
-setInterval(() => {
-  if (API_CONFIG.telegramId) {
-    syncUserData();
-  }
-}, 30000);
