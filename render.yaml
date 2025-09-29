@@ -1,7 +1,13 @@
 services:
   - type: web
-    name: roulette-app
-    env: node
-    buildCommand: "yarn install"
-    startCommand: "yarn start"
-    plan: free
+    name: xfourtune-roulette
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    envVars:
+      - key: PYTHONPATH
+        value: .
+    disk:
+      name: sqlite-disk
+      mountPath: /opt/render/project/src
+      sizeGB: 1
